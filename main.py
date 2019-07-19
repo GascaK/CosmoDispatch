@@ -1,4 +1,4 @@
- import load_info as loIn
+import load_info as loIn
 import tkinter as tk
 from tkinter import ttk
 from time import sleep
