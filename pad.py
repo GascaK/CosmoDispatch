@@ -10,9 +10,7 @@ class PadInformation(Tk):
         self.title('PAD Tracker')
         self.frame = Frame(self)
         self.populateFields()
-
         self.frame.pack()
-        self.mainloop()
 
     def populateFields(self):
         issue = ttk.Label(self.frame, text='Issue dispatched for PAD:')
@@ -32,7 +30,7 @@ class PadInformation(Tk):
         self.call_place.grid(row=4, column=0)
 
         enter = ttk.Button(self.frame,
-                           text='Update',
+                           text='Update Records',
                            command=self.on_button)
         enter.grid(row=5, column=0)
 
@@ -64,3 +62,5 @@ class PadInformation(Tk):
 
 if __name__ == '__main__':
     bi = PadInformation()
+    bi.mainloop()
+

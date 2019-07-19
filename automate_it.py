@@ -23,14 +23,14 @@ class AutomateIt():
         sleep(wait)
 
     def type_info(self, text, wait=0):
-        commands = ['tab', 'enter', 'esc']
+        commands = ['tab', 'enter', 'esc', 'alt']
         if text in commands:
             pyg.press(text)
         else:
             pyg.typewrite(text)
         sleep(wait)
 
-    def insert_new_issue(self, new_issue, issue_location, wait=0, engineer=None):
+    def insert_new_issue(self, new_issue, issue_location, wait=1, engineer=None):
         self.window_activate()
         message_list = []
         try:
@@ -98,3 +98,4 @@ class AutomateIt():
             print('Unable to locate')
             sleep(wait)
             return False
+

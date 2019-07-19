@@ -1,9 +1,10 @@
-import load_info as loIn
+ import load_info as loIn
 import tkinter as tk
 from tkinter import ttk
 from time import sleep
 from os import startfile
-from pad import PadInformation
+from PAD import PadInformation
+from directory import CosmoDirectory
 from automate_it import AutomateIt, UnableToLocateError
 from breakCalculator import BreakCalculator
 
@@ -15,8 +16,8 @@ class CosmoDispatch(tk.Tk):
         self.Engineer_List = ['John Doe', 'Jane Doe']
 
         tk.Tk.__init__(self)
-        self.geometry('{}x{}'.format(300, 220))
-        self.title('CosmoDispatch')
+        self.geometry('{}x{}'.format(330, 260))
+        self.title('Cosmo Dispatch')
 
         menu = tk.Menu(self)
         scripts = tk.Menu(menu, tearoff=0)
@@ -37,13 +38,20 @@ class CosmoDispatch(tk.Tk):
         ttk.Label(frame, text='Click to Launch').grid(row=0, column=0, columnspan=2)
         hotsos_but = ttk.Button(frame, text='HotSOS', command=self.load_hotsos)
         hotsos_but.grid(row=1, column=0)
+
         lms_but = ttk.Button(frame, text='LMS', command=self.load_lms)
         lms_but.grid(row=1, column=1)
+
         pad_track = ttk.Button(frame, text='PAD Tracker', command=self.pad_tracker)
-        pad_track.grid(row=2, columnspan=2)
+        pad_track.grid(row=2, column=0)
+
+        cosmo_direct = ttk.Button(frame, text='Directory', command=self.cosmo_directory)
+        cosmo_direct.grid(row=2, column=1)
+
         self.hotsos_logout = ttk.Checkbutton(frame, text='Prevent Logoff')
         self.hotsos_logout.grid(row=3, columnspan=2)
-        self.info_win = tk.Text(frame, width=30, height=7)
+
+        self.info_win = tk.Text(frame, width=40, height=10)
         self.info_win.grid(row=4, columnspan=2)
 
     def chg_pass(self):
@@ -104,16 +112,33 @@ class CosmoDispatch(tk.Tk):
         self.add_log('* Standby...\nLoading LMS')
         startfile(r'C:\Users\Public\Desktop\LMS.ws')
         sleep(2)
-        self.app.window_activate(window='PC5250')
-        self.app.type_info('enter')
-        self.app.window_activate(window='Session A -')
-        self.app.type_info(loIn.load_data('lms_user'))
-        self.app.type_info('tab')
-        self.app.type_info(loIn.load_data('lms_pass'))
-        self.app.type_info('enter')
-        self.app.type_info('1')
-        self.app.type_info('enter')
-        self.add_log('Complete!')
+        if self.app.window_activate('IBM i signon'):
+            self.app.type_info(loIn.load_data('lms_pass'))
+            sleep(1)
+
+        if self.app.window_activate(window='PC5250'):
+            self.app.type_info('enter')
+            sleep(1)
+            self.app.window_activate(window='Session A -')
+            try:
+                self.app.find('screens/as400.png')
+            except UnableToLocateError as e:
+                self.add_log(f'Unable to Locate: {e}\nLMS did NOT complete. *')
+                return False
+            for each in (['enter', 'alt', 'f', 'o', 'AS400.kmp', 'enter', 'alt',
+                         'f', 'x', 'enter']):
+                self.app.type_info(each)
+            sleep(2)
+
+        if self.app.window_activate(window='Session A -'):
+            for each in (loIn.load_data('lms_user'), 'tab', loIn.load_data('lms_pass'),
+                         'enter', '1', 'enter', 'enter'):
+                self.app.type_info(each)
+            self.add_log('Complete! *')
+            return True
+        else:
+            self.add_log('LMS did NOT complete! *')
+            return False
 
     def check_timeout(self):
         '''check_timeout()
@@ -141,26 +166,22 @@ class CosmoDispatch(tk.Tk):
                              'West Tower - Fan Coil - West Corridor - Floor',
                              'West Tower - Fan Coil - Storage Room - Floor',
                              'WE - Corridor - Floor']
-
             for num in range(int(fcu_amt)):
                 if tower == 'West':
                     continue_fcus, mess = self.app.insert_new_issue('PM - Hotel Shop - Corridor Fan Coil',
                                               fcu_list_west[num] + ' ' + floor,
                                               engineer=engineer)
-                    message_buffer.append(mess)
+                    message_buffer.extend(mess)
                     if continue_fcus is not True:
                         break
                 elif tower == 'East':
                     continue_fcus, mess = self.app.insert_new_issue('PM - Hotel Shop - Corridor Fan Coil',
                                               fcu_list_east[num] + ' ' + floor,
                                               engineer=engineer)
-                    message_buffer.append(mess)
+                    message_buffer.extend(mess)
                     if continue_fcus is not True:
                         break
-
-            for each in message_buffer:
-                self.add_log(each)
-
+            self.add_log(message_buffer)
 
         popup = tk.Toplevel()
         popup.title('FCU Assignment')
@@ -191,7 +212,7 @@ class CosmoDispatch(tk.Tk):
                                                         tower.get(),
                                                         fcu.get()),
                                             popup.destroy(),
-                                            self.add_log('FCU Complete. *')])
+                                            self.add_log ('FCU Complete. **')])
         enter.grid(row=4, columnspan=2)
 
     def load_breaks(self):
@@ -202,12 +223,23 @@ class CosmoDispatch(tk.Tk):
             bc = BreakCalculator()
         except FileNotFoundError:
             self.alert('File was not Found', title='CSV BreakCalculator')
+            self.add_log('File was not found!, verfiy saved info as csv/breaks.csv')
             return
         bc.calculate_time()
         bc.save_to_text()
 
     def pad_tracker(self):
         bi = PadInformation()
+        self.add_log('PAD Tracker successfully loaded.')
+        bi.mainloop()
+
+    def cosmo_directory(self):
+        try:
+            cd = CosmoDirectory()
+        except FileNotFoundError:
+            self.add_log('File was not found! Verify "direct" files intact.')
+        self.add_log('CosmoDirectory successfully loaded.')
+        cd.mainloop()
 
     def add_log(self, text):
         '''add_log(text)
@@ -215,9 +247,11 @@ class CosmoDispatch(tk.Tk):
         '''
         if type(text) is list:
             for each in text:
-                self.info_win.insert(tk.END, f'{text}\n')
+                print(f'LOG: {each}')
+                self.info_win.insert(tk.END, f'$ {each}\n')
         else:
-            self.info_win.insert(tk.END, f'{text}\n')
+            print(f'LOG: {text}')
+            self.info_win.insert(tk.END, f'$ {text}\n')
 
     def load_prvs(self):
         '''load_prvs()
@@ -231,12 +265,12 @@ class CosmoDispatch(tk.Tk):
             we_prv_rooms = ['Temp Location']
             for east in es_prv_rooms:
                 continue_prv, mess = self.app.insert_new_issue('PRV - Hotel - PM', east, engineer=east_eng, wait=.5)
-                self.add_log(mess)
+                self.add_log([item for item in mess])
                 if continue_prv is not True:
                     return False
             for west in we_prv_rooms:
                 continue_prv, mess = self.app.insert_new_issue('PRV - Hotel - PM', west, engineer=west_eng, wait=.5)
-                self.add_log(mess)
+                self.add_log([item for item in mess])
                 if continue_prv is not True:
                     return False
 
@@ -264,3 +298,4 @@ class CosmoDispatch(tk.Tk):
 if __name__ == '__main__':
     job = CosmoDispatch()
     job.mainloop()
+
