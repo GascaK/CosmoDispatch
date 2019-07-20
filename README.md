@@ -9,7 +9,7 @@ Cosmo Dispatch is a utility tool that makes dispatching work simpler and streaml
 * Scripts for PRV Assignment, Fan Coil Assignment and Break Calculator.
 * Large Informational UI
 
-[Main_UI](/screenshots/main_ui_w_info.png)
+![Main_UI](/screenshots/main_ui_w_info.png "Main UI Screen")
 
 ## Technology
 Written in python3 using as few nonstandard libraries as possible due to security restraints implemented by IT. 
@@ -26,5 +26,5 @@ To install
 3) To keep updated run [CD_Installer.py](/CD_Installer.py)
 
 ## Screenshots
-[Directory](/screenshots/directory_ui.png)
-[PAD_Tracker](/screenshots/pad_tracker.png)
+![Directory](/screenshots/directory_ui.png "Directory Screen")
+![PAD_Tracker](/screenshots/pad_tracker.png "PAD Tracker Screen")
