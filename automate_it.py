@@ -14,15 +14,23 @@ class UnableToLocateError(Exception):
 
 class AutomateIt():
     def __init__(self):
-        self.hot_hwd = 'Hotel Service Optimization System - HotSOS'
         pyg.PAUSE = .2
 
     def move_order_number(self, wait=0):
+        '''move_order_number(wait=0)
+            Move to the OrderNumber section of Hotsos.
+        '''
         self.window_activate()
         pyg.click(x=340, y=175)
         sleep(wait)
 
     def type_info(self, text, wait=0):
+        '''type_info(text, wait=0)
+            Type the 'text' into the current view. Wait a certain number of seconds
+            then continue.
+        '''
+        # commands accepted and must be entered seperately as 'press' command by
+        # pyautogui.
         commands = ['tab', 'enter', 'esc', 'alt']
         if text in commands:
             pyg.press(text)
@@ -31,7 +39,14 @@ class AutomateIt():
         sleep(wait)
 
     def insert_new_issue(self, new_issue, issue_location, wait=1, engineer=None):
+        '''insert_new_issue(new_issue, issue_location, wait=1, engineer=None)
+            Insert new issue in hotsos window. New Issue = type of issue, issue_location
+            must be exact to issue location in hotsos. Verify before applying.
+            Wait time of 1 second, standard due to input lag of hotsos application.
+            Engineer = none. Must match name exactly to hotsos. Verify before applying.
+        '''
         self.window_activate()
+        # return message_list to upper handler.
         message_list = []
         try:
             self.find('screens/new_button_hot.png')
@@ -54,18 +69,32 @@ class AutomateIt():
             self.find('screens/ok_button_hot.png')
             sleep(wait)
             message_list.append(f'Successful insert: {new_issue} @ {issue_location}')
+            # return successful and message_list for issue inserted.
             return True, message_list
 
         except TypeError:
+            # catch TypeError or Not found in screen list. Usually not raised as
+            # unable to locate error is more accurate.
             sleep(wait)
             message_list.append('TypeError!')
             return False, message_list
 
         except UnableToLocateError as e:
+            # catch UnableToLocateError, limit reached and was unable to locate
+            # screen shot on screen. Return warning message to upper handler for 
+            # processing.
             message_list.append(f'Unable to locate {e.message}.')
             return False, message_list
 
     def find(self, item_locate, reg=None, attempt_amount=5):
+        '''find(item_locate, reg=None, attempt_amount=5)
+            Locate screenshot on screen. If not found after certain attempts
+            raise Unable to Locate Error with error message.
+            Region to scan, set to None to search entire screen. Screen size
+            affects photo resolution.
+            Attempt_Amount set to 5 standard, increase if region not set to 
+            None.
+        '''
         attempt = 0
         while attempt <= attempt_amount:
             if reg is not None:
@@ -81,6 +110,7 @@ class AutomateIt():
                     x, y = pyg.locateCenterOnScreen(item_locate)
                     pyg.click(x, y)
                     return True
+                # Catch TypeError, but continue if not past attempt_amount
                 except TypeError:
                     print(f'TypeError {attempt}')
                     attempt += 1
@@ -88,6 +118,9 @@ class AutomateIt():
         raise UnableToLocateError(f'{item_locate}')
 
     def window_activate(self, window='Hotel Service Optimization System - HotSOS', wait=0):
+        '''window_activate(window='* - HotSOS', wait=0)
+            Activate Window using autoit.
+        '''
         print(f'Locating window: {window}')
         try:
             autoit.win_activate(window)
@@ -98,4 +131,3 @@ class AutomateIt():
             print('Unable to locate')
             sleep(wait)
             return False
-

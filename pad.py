@@ -5,6 +5,11 @@ import time
 
 class PadInformation(Tk):
     def __init__(self):
+        ''' PadInformation()
+            Launch the PAD Tracker Application. Saves information to
+            padInfo.txt in local directory.
+            TODO: Alter source to fit better with current project dynamics.
+        '''
         super().__init__()
         self.geometry('{}x{}'.format(425,185))
         self.title('PAD Tracker')

@@ -3,6 +3,10 @@ from tkinter import ttk
 
 class CosmoDirectory(tk.Tk):
     def __init__(self):
+        ''' CosmoDirectory()
+            Load the CosmoDirectory from local files stored in
+            location: direct/FILE.txt
+        '''
         tk.Tk.__init__(self)
         self.title('Cosmopolitan Directory')
         
@@ -35,13 +39,17 @@ class CosmoDirectory(tk.Tk):
         directory.pack()
 
     def load_file(self, filepath):
+    ''' load_file(filepath)
+        Load the file and return the contents.
+    '''
         try:
             with open(filepath, mode='r') as in_read:
                 return in_read.read()
+        # Catch FileNotFoundError, if not found return generic text
+        # but continue execution.
         except FileNotFoundError as e:
-            raise
+            return 'File was not found.'
 
 if __name__ == '__main__':
     cd = CosmoDirectory()
     cd.mainloop()
-

@@ -107,7 +107,9 @@ class CosmoDispatch(tk.Tk):
 
     def load_lms(self):
         '''load_lms()
-
+            Launch and login to LMS. Load information at time of execution.
+            TODO: Create breakpoints for invalid login. Point of friction as
+            all LMS logins are different depending on machine.
         '''
         self.add_log('* Standby...\nLoading LMS')
         startfile(r'C:\Users\Public\Desktop\LMS.ws')
@@ -221,6 +223,7 @@ class CosmoDispatch(tk.Tk):
         '''
         try:
             bc = BreakCalculator()
+        # Catch FileNotFoundError. Break if unable to locate.
         except FileNotFoundError:
             self.alert('File was not Found', title='CSV BreakCalculator')
             self.add_log('File was not found!, verfiy saved info as csv/breaks.csv')
@@ -229,11 +232,17 @@ class CosmoDispatch(tk.Tk):
         bc.save_to_text()
 
     def pad_tracker(self):
+        '''pad_tracker()
+            launch the PAD Tracker.
+        '''
         bi = PadInformation()
         self.add_log('PAD Tracker successfully loaded.')
         bi.mainloop()
 
     def cosmo_directory(self):
+        '''cosmo_directory()
+            Launch the CosmoDirectory application.
+        '''
         try:
             cd = CosmoDirectory()
         except FileNotFoundError:
@@ -288,14 +297,14 @@ class CosmoDispatch(tk.Tk):
                                                                  popup.destroy()] )
         enter.grid(row=2, column=0, columnspan=2)
 
-    def alert(self, text, title='CosmoDispatch.py', button='Ok'):
+    def alert(self, text, title='CosmoDispatch', button='Ok'):
         popup = tk.Toplevel()
         popup.title(title)
         ttk.Label(popup, text=text).pack()
         ttk.Button(popup, text=button, command=popup.destroy).pack()
         popup.mainloop()
 
+
 if __name__ == '__main__':
     job = CosmoDispatch()
     job.mainloop()
-

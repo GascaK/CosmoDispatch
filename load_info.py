@@ -1,5 +1,8 @@
 import json
 
+# Obfuscation of data only. Not a true valid form of data
+# privacy. Due to Security unable to download cryptography
+# libraries to assist.
 def load_data(key_pair):
     filepath = 'config/info.json'
     with open(filepath) as creds:
