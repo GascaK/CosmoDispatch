@@ -7,7 +7,7 @@ Cosmo Dispatch is a utility tool that makes dispatching work simpler and streaml
 * LMS Autologin
 * Cosmo Directory Tab
 * Scripts for PRV Assignment, Fan Coil Assignment and Break Calculator.
-* Large Informational UI
+* Large Informational UI Window.
 
 ![Main_UI](/screenshots/main_ui_w_info.png "Main UI Screen")
 
@@ -27,4 +27,5 @@ To install
 
 ## Screenshots
 ![Directory](/screenshots/directory_ui.png "Directory Screen")
+
 ![PAD_Tracker](/screenshots/pad_tracker.png "PAD Tracker Screen")

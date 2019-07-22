@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 
+
 class CDUpdate():
     def __init__(self, update_file):
         '''CDUpdate(update_file)
@@ -9,30 +10,48 @@ class CDUpdate():
         '''
         # Standard location of local.
         location = ''
+        tk.Tk.__init__(self)
+        frame = tk.Frame()
+        frame.pack()
+        entry = tk.Text(frame, width=50, height=10)
+        entry.pack()
+        update_notes = False
         try:
             with open(update_file, 'r') as u_file:
                 for line in u_file:
-                    # Locate File Load location. Will return 
-                    if line[:4] == '[FL]':
+                    if line[:9] == '[UpNotes]' or update_notes == True:
+                        if line[:9] == '[UpNotes]':
+                            update_notes = True
+                            version = line[9:]
+                            self.title(f'Update # {version}')
+                            continue
+                        elif line[:9] == '[DnNotes]':
+                            update_notes = False
+                            continue
+                        # Display Update Notes.
+                        entry.insert(tk.END, line)
+                    # Locate File Load location. Will return
+                    elif line[:4] == '[FL]':
                         location = line[4:]
                         try:
                             os.remove(location[:-1])
-                        # Catch FileNotFoundError while attempting to delete 
+                        # Catch FileNotFoundError while attempting to delete
                         # file at location. Continue as this works out.
                         except FileNotFoundError:
                             continue
-                        continue #skip the location line
-                    # If location is not empty continue. Otherwise skip line assignment.
+                        continue  # skip the location line
+                    # If location is not empty continue. Otherwise skip
+                    # line assignment.
                     if location is not '':
                         self.run_update(location[:-1], line)
         # Catch FileNotFoundError while attempting to open CD_update.txt
         except FileNotFoundError:
-            print('File was not located. Verify CD_update.'\
+            print('File was not located. Verify CD_update.'
                   'txt was downloaded correctly')
 
     def run_update(self, location, line):
         '''run_update(location, line)
-            Write line by line to the specific location listed. 
+            Write line by line to the specific location listed.
             Point of friction as opening and closing the file seems
             tedious and may need refractoring.
         '''
@@ -52,3 +71,4 @@ class CDUpdate():
 
 if __name__ == '__main__':
     cdi = CDUpdate('CD_update.txt')
+    cdi.mainloop()

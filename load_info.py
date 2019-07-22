@@ -1,5 +1,6 @@
 import json
 
+
 # Obfuscation of data only. Not a true valid form of data
 # privacy. Due to Security unable to download cryptography
 # libraries to assist.
@@ -17,6 +18,7 @@ def load_data(key_pair):
         except ValueError:
             return 'UnF'
 
+
 def save_data(hot_user, hot_pass, lms_user, lms_pass):
     filepath = 'config/info.json'
     # Allow for empty responses before saving. 
@@ -30,12 +32,12 @@ def save_data(hot_user, hot_pass, lms_user, lms_pass):
         lms_pass = load_data('lms_pass')
 
     with open(filepath, 'w') as creds:
-        json.dump({'hot_user': hot_user, 
+        json.dump({'hot_user': hot_user,
                    'hot_pass': obfs(hot_pass),
                    'lms_user': lms_user,
-                   'lms_pass': obfs(lms_pass)},
-                   creds)
+                   'lms_pass': obfs(lms_pass)}, creds)
         return True
+
 
 def obfs(value):
     load = []
@@ -43,6 +45,7 @@ def obfs(value):
     for each in saved:
         load.append(ord(each))
     return('.'.join(str(e) for e in load))
+
 
 def un_obfs(value):
     load = []

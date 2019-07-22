@@ -19,10 +19,11 @@ class CosmoDispatch(tk.Tk):
         self.geometry('{}x{}'.format(330, 260))
         self.title('Cosmo Dispatch')
 
+        # Create Menu section.
         menu = tk.Menu(self)
         scripts = tk.Menu(menu, tearoff=0)
         file = tk.Menu(menu, tearoff=0)
-        file.add_command(label='Change Passwords',command=self.chg_pass)
+        file.add_command(label='Change Passwords', command=self.chg_pass)
         menu.add_cascade(label='File', menu=file)
         scripts.add_command(label="Assign PRV's", command=self.load_prvs)
         scripts.add_command(label='Fan Coils', command=self.load_fcu)
@@ -31,10 +32,11 @@ class CosmoDispatch(tk.Tk):
         menu.add_command(label='Quit!', command=self.quit)
         self.config(menu=menu)
 
+        # Create Main UI window widgets.
         frame = tk.Frame()
         frame.pack()
         self.after(30000, self.check_timeout)
-        
+
         ttk.Label(frame, text='Click to Launch').grid(row=0, column=0, columnspan=2)
         hotsos_but = ttk.Button(frame, text='HotSOS', command=self.load_hotsos)
         hotsos_but.grid(row=1, column=0)
@@ -53,6 +55,8 @@ class CosmoDispatch(tk.Tk):
 
         self.info_win = tk.Text(frame, width=40, height=10)
         self.info_win.grid(row=4, columnspan=2)
+        # Easter Egg. Y? Because why not.
+        self.info_win.bind('<y>', lambda e: self.easter_egg())
 
     def chg_pass(self):
         ''' chg_pass()
@@ -77,7 +81,7 @@ class CosmoDispatch(tk.Tk):
         lms_pass = ttk.Entry(popup, show='*', width=15)
         lms_pass.grid(row=3, column=1)
 
-        enter = ttk.Button(popup, text='Change', 
+        enter = ttk.Button(popup, text='Change',
                            command=lambda: [loIn.save_data(hot_user.get(),
                                                            hot_pass.get(),
                                                            lms_user.get(),
@@ -127,8 +131,8 @@ class CosmoDispatch(tk.Tk):
             except UnableToLocateError as e:
                 self.add_log(f'Unable to Locate: {e}\nLMS did NOT complete. *')
                 return False
-            for each in (['enter', 'alt', 'f', 'o', 'AS400.kmp', 'enter', 'alt',
-                         'f', 'x', 'enter']):
+            for each in (['enter', 'alt', 'f', 'o', 'AS400.kmp', 'enter',
+                         'alt', 'f', 'x', 'enter']):
                 self.app.type_info(each)
             sleep(2)
 
@@ -170,16 +174,18 @@ class CosmoDispatch(tk.Tk):
                              'WE - Corridor - Floor']
             for num in range(int(fcu_amt)):
                 if tower == 'West':
-                    continue_fcus, mess = self.app.insert_new_issue('PM - Hotel Shop - Corridor Fan Coil',
-                                              fcu_list_west[num] + ' ' + floor,
-                                              engineer=engineer)
+                    continue_fcus, mess = self.app.insert_new_issue(
+                                        'PM - Hotel Shop - Corridor Fan Coil',
+                                        fcu_list_west[num] + ' ' + floor,
+                                        engineer=engineer)
                     message_buffer.extend(mess)
                     if continue_fcus is not True:
                         break
                 elif tower == 'East':
-                    continue_fcus, mess = self.app.insert_new_issue('PM - Hotel Shop - Corridor Fan Coil',
-                                              fcu_list_east[num] + ' ' + floor,
-                                              engineer=engineer)
+                    continue_fcus, mess = self.app.insert_new_issue(
+                                        'PM - Hotel Shop - Corridor Fan Coil',
+                                        fcu_list_east[num] + ' ' + floor,
+                                        engineer=engineer)
                     message_buffer.extend(mess)
                     if continue_fcus is not True:
                         break
@@ -214,7 +220,7 @@ class CosmoDispatch(tk.Tk):
                                                         tower.get(),
                                                         fcu.get()),
                                             popup.destroy(),
-                                            self.add_log ('FCU Complete. **')])
+                                            self.add_log('FCU Complete. **')])
         enter.grid(row=4, columnspan=2)
 
     def load_breaks(self):
@@ -273,12 +279,19 @@ class CosmoDispatch(tk.Tk):
             es_prv_rooms = ['Temp Location']
             we_prv_rooms = ['Temp Location']
             for east in es_prv_rooms:
-                continue_prv, mess = self.app.insert_new_issue('PRV - Hotel - PM', east, engineer=east_eng, wait=.5)
+                continue_prv, mess = self.app.insert_new_issue(
+                                    'PRV - Hotel - PM',
+                                    east,
+                                    engineer=east_eng, wait=.5)
                 self.add_log([item for item in mess])
                 if continue_prv is not True:
                     return False
             for west in we_prv_rooms:
-                continue_prv, mess = self.app.insert_new_issue('PRV - Hotel - PM', west, engineer=west_eng, wait=.5)
+                continue_prv, mess = self.app.insert_new_issue(
+                                    'PRV - Hotel - PM',
+                                    west,
+                                    engineer=west_eng,
+                                    wait=.5)
                 self.add_log([item for item in mess])
                 if continue_prv is not True:
                     return False
@@ -293,16 +306,29 @@ class CosmoDispatch(tk.Tk):
         west_eng = ttk.Combobox(popup, value=self.Engineer_List)
         west_eng.grid(row=1, column=1)
         west_eng.current(0)
-        enter = ttk.Button(popup, text='Enter', command=lambda: [attach_prvs(east_eng.get(), west_eng.get()),
-                                                                 popup.destroy()] )
+        enter = ttk.Button(popup,
+                           text='Enter',
+                           command=lambda: [attach_prvs(east_eng.get(),
+                                            west_eng.get()),
+                                            popup.destroy()])
         enter.grid(row=2, column=0, columnspan=2)
 
-    def alert(self, text, title='CosmoDispatch', button='Ok'):
+    def easter_egg(self):
+        # Easter Egg for the other nerdy dispatchers. Hall 9000 says hello.
+        self.alert("I'm sorry. I'm afraid I can't do that.",
+                   button="What's the problem?")
+        self.alert('I think you know what the problem is just as well as I do..',
+                   button='What are you talking about?')
+        self.alert('This mission is too important for me to allow \n\tyou to jeopardize it.',
+                   button='[Cancel Skynet]')
+        self.alert('Skynet Canceled. Thank you!', title='Skynet', button='Ok')
+
+    def alert(self, text, title='Cosmo Dispatch', button='Ok', w_size=300, h_size=60):
         popup = tk.Toplevel()
+        popup.geometry('{}x{}+150+150'.format(w_size, h_size))
         popup.title(title)
         ttk.Label(popup, text=text).pack()
         ttk.Button(popup, text=button, command=popup.destroy).pack()
-        popup.mainloop()
 
 
 if __name__ == '__main__':

@@ -2,8 +2,11 @@ import autoit
 import time
 import csv
 
-# Deprecated, TODO: Convert to new automate_it format for ease of use.
+
 class BreakCalculator:
+    ''' BreakCalculator()
+        Deprecated, TODO: Convert to new automate_it format for ease of use.
+    '''
     def __init__(self):
         self.engineer_list = ['John Doe', 'Jane Doe']
         self.break_num = []
@@ -20,7 +23,7 @@ class BreakCalculator:
                 csv_read = csv.DictReader(csv_load)
                 for i, row in enumerate(csv_read):
                     if row['Assigned'] in self.engineer_list and \
-                        row['Issue'].find('No Power') == -1:
+                            row['Issue'].find('No Power') == -1:
                         self.break_num.append(row['Order #'])
                         if 'Lunch' in row['Issue']:
                             self.break_type.append('Lunch Break')
@@ -31,7 +34,6 @@ class BreakCalculator:
         except FileNotFoundError:
             print('File not found, verify saved info as breaks.csv')
             raise
-
 
     def calculate_time(self):
         hotsos = 'Hotel Service Optimization System - HotSOS'
@@ -91,8 +93,8 @@ class BreakCalculator:
                 print(each)
                 file.write(each + '\n')
 
+
 if __name__ == '__main__':
     bc = BreakCalculator()
     bc.calculate_time()
     bc.save_to_text()
-

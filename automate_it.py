@@ -3,14 +3,17 @@ import pyautogui as pyg
 import autoit
 from time import sleep
 
+
 class UnableToLocateError(Exception):
     '''UnableToLocateError - Exception
         Return unable to find on screen error.
     '''
     def __init__(self, message):
         self.message = message
+
     def __str__(self):
         return repr(self.message)
+
 
 class AutomateIt():
     def __init__(self):
@@ -29,8 +32,8 @@ class AutomateIt():
             Type the 'text' into the current view. Wait a certain number of seconds
             then continue.
         '''
-        # commands accepted and must be entered seperately as 'press' command by
-        # pyautogui.
+        # commands accepted and must be entered seperately as 'press' command 
+        # by pyautogui.
         commands = ['tab', 'enter', 'esc', 'alt']
         if text in commands:
             pyg.press(text)
@@ -50,16 +53,21 @@ class AutomateIt():
         message_list = []
         try:
             self.find('screens/new_button_hot.png')
-            self.find('screens/issue_entry_hot.png', reg=(200, 685, 725, 345), attempt_amount=20)
+            self.find('screens/issue_entry_hot.png',
+                      reg=(200, 685, 725, 345),
+                      attempt_amount=20)
             pyg.typewrite(new_issue)
             pyg.press('enter')
-            self.find('screens/where_entry_hot.png', reg=(200, 685, 725, 345))
+            self.find('screens/where_entry_hot.png',
+                      reg=(200, 685, 725, 345))
             pyg.typewrite(issue_location)
             pyg.press('enter')
 
             if engineer is not None:
-                self.find('screens/additional_tab_hot.png', reg=(200, 685, 725, 345))
-                self.find('screens/direct_to_entry_hot.png', reg=(200, 685, 725, 345))
+                self.find('screens/additional_tab_hot.png',
+                          reg=(200, 685, 725, 345))
+                self.find('screens/direct_to_entry_hot.png',
+                          reg=(200, 685, 725, 345))
                 pyg.typewrite(engineer)
                 for _ in range(4):
                     pyg.press('tab')
@@ -73,16 +81,16 @@ class AutomateIt():
             return True, message_list
 
         except TypeError:
-            # catch TypeError or Not found in screen list. Usually not raised as
-            # unable to locate error is more accurate.
+            # catch TypeError or Not found in screen list. Usually not
+            # raised as unable to locate error is more accurate.
             sleep(wait)
             message_list.append('TypeError!')
             return False, message_list
 
         except UnableToLocateError as e:
             # catch UnableToLocateError, limit reached and was unable to locate
-            # screen shot on screen. Return warning message to upper handler for 
-            # processing.
+            # screen shot on screen. Return warning message to upper handler
+            # for processing.
             message_list.append(f'Unable to locate {e.message}.')
             return False, message_list
 
@@ -92,7 +100,7 @@ class AutomateIt():
             raise Unable to Locate Error with error message.
             Region to scan, set to None to search entire screen. Screen size
             affects photo resolution.
-            Attempt_Amount set to 5 standard, increase if region not set to 
+            Attempt_Amount set to 5 standard, increase if region not set to
             None.
         '''
         attempt = 0
@@ -127,6 +135,7 @@ class AutomateIt():
             print('Found!')
             sleep(wait)
             return True
+        # Bare accept because autoit won't tell me what the error actually is.
         except:
             print('Unable to locate')
             sleep(wait)
