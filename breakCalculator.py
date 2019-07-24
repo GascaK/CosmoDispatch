@@ -4,9 +4,15 @@ import csv
 
 
 class BreakCalculator:
-    ''' BreakCalculator()
-        Deprecated, TODO: Convert to new automate_it format for ease of use.
-    '''
+    """ Deprecated Break Calculator function.
+
+        Break Calculator to show all engineers break times, break lengths
+        and break amounts.
+
+        TODO
+        ------------------------------
+        Convert to new automate_it format for ease of use.
+    """
     def __init__(self):
         self.engineer_list = ['John Doe', 'Jane Doe']
         self.break_num = []

@@ -4,8 +4,16 @@ from tkinter import ttk
 
 class CosmoDirectory(tk.Tk):
     def __init__(self):
+        """ Cosmo Directory launcher and window.
+
+            Load information from text files a...z.txt. Saves information
+            before closing window to allow for user to edit text to their
+            liking. Allows for personalization and diligent notetaking.
+        """
         tk.Tk.__init__(self)
         self.title('Cosmopolitan Directory')
+
+        # Catch window close before completion
         self.protocol('WM_DELETE_WINDOW', self.on_closing)
 
         directory = ttk.Notebook(self)
@@ -37,6 +45,21 @@ class CosmoDirectory(tk.Tk):
         directory.pack()
 
     def load_file(self, filepath):
+        """ Load information from file.
+
+            Load information from file through the filepath given.
+
+            Noteable Variables
+            ------------------------------
+            filepath - string
+            Filepath to be loaded.
+
+            Returns
+            ------------------------------
+            return information read, or 'Info Not FOUND. check [filepath]'
+            if object not loaded, so as to continue loading other files if
+            1 object has become corrupted.
+        """
         try:
             with open(filepath, mode='r') as in_read:
                 return in_read.read()
@@ -44,13 +67,33 @@ class CosmoDirectory(tk.Tk):
             return f'Info Not FOUND. Check {filepath}'
 
     def save_file(self, filepath, info):
+        """ Save information to filepath.
+
+            Save information to file
+
+            Noteable Variables
+            ------------------------------
+            filepath - string
+            Filepath to be saved too.
+
+            info - string
+            Information to be saved.
+        """
         try:
             with open(filepath, mode='w') as file:
                 file.write(info)
+        # Catch file not found error, but continue as other files may
+        # be in the que.
         except FileNotFoundError:
             print('Unable to save to file. Verify file is not open?')
 
     def on_closing(self):
+        """ Catch before closing main window protocol
+
+            Save all text files with information in TEXT widget before
+            closing, then upon either success or failure continue and
+            destroy window.
+        """
         self.save_file('direct/a_d.txt', self.a_d.get(1.0, 'end-1c'))
         self.save_file('direct/e_j.txt', self.e_j.get(1.0, 'end-1c'))
         self.save_file('direct/l_r.txt', self.l_r.get(1.0, 'end-1c'))

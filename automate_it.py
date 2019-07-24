@@ -5,9 +5,10 @@ from time import sleep
 
 
 class UnableToLocateError(Exception):
-    '''UnableToLocateError - Exception
+    """ UnableToLocateError - Exception
+
         Return unable to find on screen error.
-    '''
+    """
     def __init__(self, message):
         self.message = message
 
@@ -20,20 +21,35 @@ class AutomateIt():
         pyg.PAUSE = .2
 
     def move_order_number(self, wait=0):
-        '''move_order_number(wait=0)
-            Move to the OrderNumber section of Hotsos.
-        '''
+        """ Select to Order Number box in hotsos.
+
+            Move mouse to the OrderNumber section of hotSOS and click.
+        """
         self.window_activate()
         pyg.click(x=340, y=175)
         sleep(wait)
 
     def type_info(self, text, wait=0):
-        '''type_info(text, wait=0)
+        """ Type info using pyautogui's type command.
+
             Type the 'text' into the current view. Wait a certain number of seconds
-            then continue.
-        '''
-        # commands accepted and must be entered seperately as 'press' command 
-        # by pyautogui.
+            then continue. Any commands must be entered through the 'press'
+            function. Add any commands to commands variable.
+
+            Noteable Variables
+            ------------------------------
+            text - string
+            Text to send through the pyautogui library.
+
+            wait - int
+            Time in seconds to wait after input command to allow for delay
+            after entering information.
+
+            commands - list
+            List of commands that should be entered through the press function
+            of pyautogui. If exact strings are to be typed, enter each letter
+            individually instead.
+        """
         commands = ['tab', 'enter', 'esc', 'alt']
         if text in commands:
             pyg.press(text)
@@ -42,12 +58,39 @@ class AutomateIt():
         sleep(wait)
 
     def insert_new_issue(self, new_issue, issue_location, wait=1, engineer=None):
-        '''insert_new_issue(new_issue, issue_location, wait=1, engineer=None)
-            Insert new issue in hotsos window. New Issue = type of issue, issue_location
-            must be exact to issue location in hotsos. Verify before applying.
-            Wait time of 1 second, standard due to input lag of hotsos application.
-            Engineer = none. Must match name exactly to hotsos. Verify before applying.
-        '''
+        """ Insert new issue inside hotSOS window.
+
+            Insert new issue in hotsos window. Takes information passed and
+            inputs into hotSOS utilizing precise mouse and button combinations.
+
+            Noteable Variables
+            ------------------------------
+            new_issue - string
+            Issue to be typed into hotSOS window. Must be exactly as shown
+            in hotSOS. Verify before sending to function.
+
+            issue_location - string
+            Location of issue to be typed into hotSOS window. Must be exactly
+            as shown in hotSOS. Verify before sending to function.
+
+            wait - int
+            Time in seconds to wait after input command to allow for delay
+            after entering information.
+
+            engineer - string
+            Name of engineer to attach to hotSOS order created. If empty skip
+            entire section.
+
+
+            Returns
+            ------------------------------
+            Success - Boolean
+            Returns successful insert or otherwise.
+
+            message_list - List
+            List of messages to send to upper function. Useful for deciphering
+            where things have gone awry.
+        """
         self.window_activate()
         # return message_list to upper handler.
         message_list = []
@@ -80,29 +123,45 @@ class AutomateIt():
             # return successful and message_list for issue inserted.
             return True, message_list
 
+        # catch TypeError or Not found in screen list. Usually not
+        # raised as unable to locate error is more accurate.
         except TypeError:
-            # catch TypeError or Not found in screen list. Usually not
-            # raised as unable to locate error is more accurate.
             sleep(wait)
             message_list.append('TypeError!')
             return False, message_list
 
+        # catch UnableToLocateError, limit reached and was unable to locate
+        # screen shot on screen. Return warning message to upper handler
+        # for processing.
         except UnableToLocateError as e:
-            # catch UnableToLocateError, limit reached and was unable to locate
-            # screen shot on screen. Return warning message to upper handler
-            # for processing.
             message_list.append(f'Unable to locate {e.message}.')
             return False, message_list
 
     def find(self, item_locate, reg=None, attempt_amount=5):
-        '''find(item_locate, reg=None, attempt_amount=5)
+        """ find(item_locate, reg=None, attempt_amount=5)
+
             Locate screenshot on screen. If not found after certain attempts
-            raise Unable to Locate Error with error message.
-            Region to scan, set to None to search entire screen. Screen size
-            affects photo resolution.
-            Attempt_Amount set to 5 standard, increase if region not set to
-            None.
-        '''
+            raise Unable to Locate Error with error message. Region to scan,
+            set to None to search entire screen. Screen size affects photo
+            resolution. Attempt_Amount set to 5 standard, increase if region
+            not set to None.
+
+            Noteable Variables
+            ------------------------------
+            item_locate - string
+            Location of screenshot to search on screen for. Warning screen
+            size affects resolution. Image must be pixel perfect. The fewer
+            the pixels the better
+
+            reg - Tuple
+            4 Integer tuple to limit the screen search size. Set to None to
+            search entire window.
+
+            attempt_amount - int
+            Number of times to search screen. The higher the number the longer
+            the wait. This is used due to lag time between search and hotSOS
+            loading times.
+        """
         attempt = 0
         while attempt <= attempt_amount:
             if reg is not None:
@@ -126,9 +185,27 @@ class AutomateIt():
         raise UnableToLocateError(f'{item_locate}')
 
     def window_activate(self, window='Hotel Service Optimization System - HotSOS', wait=0):
-        '''window_activate(window='* - HotSOS', wait=0)
-            Activate Window using autoit.
-        '''
+        """ Activate window before continuing
+
+            Activate Window using autoit. Default search window is hotSOS,
+            due to frequency of use througout application.
+
+            Noteable Variables
+            ------------------------------
+            window - string
+            Name of window to find, using pyautoit. Pyautoit allows for
+            semi matching strings and wild cards.
+
+            wait - int
+            Time in seconds to wait after input command to allow for delay
+            after entering information.
+
+
+            Returns
+            ------------------------------
+            Success - Boolean
+            Return if window was either found successfully or otherwise.
+        """
         print(f'Locating window: {window}')
         try:
             autoit.win_activate(window)

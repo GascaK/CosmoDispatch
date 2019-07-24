@@ -21,7 +21,7 @@ def load_data(key_pair):
 
 def save_data(hot_user, hot_pass, lms_user, lms_pass):
     filepath = 'config/info.json'
-    # Allow for empty responses before saving. 
+    # Allow for empty responses before saving.
     if not hot_user:
         hot_user = load_data('hot_user')
     if not hot_pass:

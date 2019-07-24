@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 import os
+import tkinter as tk
+from tkinter import ttk
 
 
-class CDUpdate():
+class CDUpdate(tk.Tk):
     def __init__(self, update_file):
-        '''CDUpdate(update_file)
-            Update the CosmoDispatch app with the following information
-            from update_file.
-        '''
+        """ Cosmo Dispatch Update/Installer class.
+
+            Update the CosmoDispatch application source code
+            with information provided in predefined format from
+            inside CD_update.txt file. This is to circumvent
+            limitations in the ability to send .py extensions
+            over email.
+
+            Noteable Variables
+            ------------------------------
+            update_file - string
+            File to load for update. Usually 'CD_update.txt'
+        """
         # Standard location of local.
         location = ''
         tk.Tk.__init__(self)
@@ -50,14 +61,25 @@ class CDUpdate():
                   'txt was downloaded correctly')
 
     def run_update(self, location, line):
-        '''run_update(location, line)
+        """ Update file at location with line
+
             Write line by line to the specific location listed.
             Point of friction as opening and closing the file seems
             tedious and may need refractoring.
-        '''
+
+            Noteable Variables
+            ------------------------------
+            location - string
+            Location of file to be updated. If not found, create file
+            then add 'line'.
+
+            line - string
+            String to append to file.
+        """
         try:
             up_file = open(location, 'a')
-        # Catch FileNotFoundError, if true then Create file first then write line.
+        # Catch FileNotFoundError, if true then Create file first then
+        # write line.
         except FileNotFoundError:
             result = location.find('\\')
             if not os.path.exists(location[:result]):
@@ -65,8 +87,9 @@ class CDUpdate():
                 os.makedirs(location[:result])
             # Create file
             up_file = open(location, 'w')
-        up_file.write(line)
-        up_file.close()
+        finally:
+            up_file.write(line)
+            up_file.close()
 
 
 if __name__ == '__main__':
