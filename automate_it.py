@@ -1,4 +1,5 @@
 # autoit file
+import os
 import pyautogui as pyg
 import autoit
 from time import sleep
@@ -183,6 +184,31 @@ class AutomateIt():
                     attempt += 1
         # Raise Unable to Locate back to upper function
         raise UnableToLocateError(f'{item_locate}')
+
+    def save_orders(self):
+        """ Save hotSOS Orders to csv/orders.csv
+
+            Saves the current hotSOS Orders list to the orders csv value
+            inside the csv folder in the main script path. This will allow
+            other classes to load data of all current running calls.
+
+            Returns
+            ------------------------------
+            Success - Boolean
+            Returns True if successful completion or otherwise with error
+            message.
+        """
+        self.window_activate()
+        try:
+            self.find('screens/orders.png')
+        # If unable to locate return False and with error.
+        except UnableToLocateError as e:
+            return False, f'Unable to Locate: {e}'
+        # Save prompt script
+        self.type_info(f'{os.path}/csv/orders.csv')
+        for e in ['tab', 'csv', 'enter']:
+            self.type_info(e)
+        return True, None
 
     def window_activate(self, window='Hotel Service Optimization System - HotSOS', wait=0):
         """ Activate window before continuing
