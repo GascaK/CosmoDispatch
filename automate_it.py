@@ -19,6 +19,12 @@ class UnableToLocateError(Exception):
 
 class AutomateIt():
     def __init__(self):
+        """ Automation script that sends specific information to hotSOS window.
+
+            AutomateIt provides specific commands to be sent through the hotSOS
+            application. Each function has documentation to provide further
+            information to what is accomplished.
+        """
         pyg.PAUSE = .2
 
     def move_order_number(self, wait=0):
@@ -185,10 +191,10 @@ class AutomateIt():
         # Raise Unable to Locate back to upper function
         raise UnableToLocateError(f'{item_locate}')
 
-    def save_orders(self):
-        """ Save hotSOS Orders to csv/orders.csv
+    def export_orders(self):
+        """ Exports hotSOS Orders to csv/orders.csv
 
-            Saves the current hotSOS Orders list to the orders csv value
+            Exports the current hotSOS Orders list to the orders csv value
             inside the csv folder in the main script path. This will allow
             other classes to load data of all current running calls.
 

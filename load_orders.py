@@ -5,27 +5,47 @@ from automate_it import AutomateIt
 
 class HotOrders():
     def __init__(self):
+        """ hotSOS Order tracker, saver and updater.
+
+            Function to load and save hotSOS order information into
+            memory for use throughout the CosmoDispatch application.
+
+            Noteable Variables
+            ------------------------------
+            conn - SQLite3 Database Connection
+            Connector to the SQLite3 database
+
+            tracker - SQLite3 cursor object
+            Cursor object for SQLite3
+        """
         ait = AutomateIt()
-        self.conn = sqlite3.connect('hotsos_orders.db')
+        # SQL database. Saved in memory to load upon every boot up.
+        self.conn = sqlite3.connect(':memory:')
         self.tracker = self.conn.cursor()
-        self.is_updated()
+        self.update_orders()
 
-    def run(self):
-        pass
-
-    def is_updated(self):
+    def update_orders(self):
         """ Check if hotsos orders.csv is saved and will update if not.
 
-            asdf
+            Update orders attempts to check for the presence of the
+            orders.csv inside the csv folder location. If not located
+            will attempt to invoke the AutomateIt function export_orders().
+
+            Noteable Variables
+            ------------------------------
+            column_headers - string
+            Input from the orders.csv. Uses this information to gather column
+            names for each individual user. This is due to users being able
+            to alter column names inside the hotSOS application
         """
         try:
-            read = open('C:/Users/OptimusMine/Desktop/orders.csv')
+            read = open('csv/orders.csv')
         # Catch File not found, and create file using ait.
         except FileNotFoundError:
             print('File was not found. Saving data now.')
-            cont, mess = ait.save_orders()
+            cont, mess = ait.export_orders()
             if cont:
-                read = open('C:/Users/OptimusMine/Desktop/orders.csv')
+                read = open('csv/orders.csv')
             else:
                 print(mess)
                 raise FileNotFoundError
@@ -34,51 +54,69 @@ class HotOrders():
             read.readline()
         reader = csv.reader(read)
         column_headers = (read.readline()).split(',')
-        print('CH: ', column_headers)
 
         # Loop through Column Names and change to proper sql
-        i = 0
-        while i < len(column_headers):
-            if column_headers[i] == 'Order #':
+        for i, title in enumerate(column_headers):
+            if title == 'Order #':
                 column_headers[i] = 'Order_Num integer PRIMARY KEY'
-            elif column_headers[i] == 'Room/Eq':
+            elif title == 'Room/Eq':
                 column_headers[i] = 'Room text NOT NULL'
-            elif column_headers[i] == 'Status':
+            elif title == 'Status':
                 column_headers[i] = 'Status text'
-            elif column_headers[i] == 'Priority':
+            elif title == 'Priority':
                 column_headers[i] = 'Priority integer'
-            elif column_headers[i] == 'Trade':
+            elif title == 'Trade':
                 column_headers[i] = 'Trade text'
-            elif column_headers[i] == 'Issue':
+            elif title == 'Issue':
                 column_headers[i] = 'Issue text'
-            elif column_headers[i] == 'Requestor':
+            elif title == 'Requestor':
                 column_headers[i] = 'Requestor text'
-            elif column_headers[i] == 'Assigned':
+            elif title == 'Assigned':
                 column_headers[i] = 'Assigned'
-            elif column_headers[i] == 'A':
-                column_headers[i] = 'A text'
-            elif column_headers[i] == 'Occupancy\n':
+            elif title == 'A':
+                column_headers[i] = 'A'
+            elif title == 'Occupancy\n':
                 column_headers[i] = 'Occupancy text'
-            i += 1
 
-        print('CH: ', column_headers)
-
-        print('{}, {}, {}, {}, {}, {}, {}, {}, {}'.format(*column_headers))
+        # Drop old TABLE and create new one with newly loaded information.
+        self.tracker.execute('''DROP TABLE IF EXISTS Hotel_Orders''')
 
         self.tracker.execute('''CREATE TABLE IF NOT EXISTS Hotel_Orders
-                        ({}, {}, {}, {}, {}, {}, {}, {},
-                        {}, {}, {})'''.format(*column_headers))
+            ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})'''.format(*column_headers))
         for row in reader:
-            self.tracker.execute("""INSERT INTO Hotel_Orders
-                            values ('{}', '{}', '{}', '{}', '{}',
-                            '{}', '{}', '{}', '{}', '{}', '{}')""".format(*row))
-
+            self.tracker.execute('''INSERT INTO Hotel_Orders
+                values ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
+                '{}', '{}', '{}')'''.format(*[value.replace("'", ',') for value in row]))
         self.conn.commit()
-        t = ('In Progress',)
-        self.tracker.execute('SELECT * FROM Hotel_Orders WHERE Status=?', t)
-        print(self.tracker.fetchone())
+
+    def return_order_numbers(self, column, value):
+        """ Return the order numbers of value that are in columns
+
+            Return the hotSOS order numbers of all matching values
+            inside the provided column name.
+
+            Noteable Variables
+            ------------------------------
+            column - String
+            Column name inside the Hotel_Orders database to compare
+            against values.
+
+            value - String
+            Value to search for in provided column name
+
+            Returns
+            ------------------------------
+            Returns the hotSOS order numbers of all matching rows.
+        """
+        self.tracker.execute('''SELECT Order_Num
+            FROM
+             Hotel_Orders
+            WHERE
+             {} = ?
+            ORDER BY
+             Order_Num'''.format(column), (value,))
+        return self.tracker.fetchall()
 
 
 if __name__ == '__main__':
     obj = HotOrders()
-    obj.is_updated()

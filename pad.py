@@ -15,7 +15,7 @@ class PadInformation(Tk):
             Alter source to fit better with current project dynamics.
         """
         super().__init__()
-        self.geometry('{}x{}'.format(425,185))
+        self.geometry('{}x{}'.format(425, 185))
         self.title('PAD Tracker')
         self.frame = Frame(self)
         self.populateFields()
@@ -66,10 +66,9 @@ class PadInformation(Tk):
             padInfo.write('{} at {} @ {}\n'.format(
                     types,
                     place,
-                    time.asctime( time.localtime(time.time()) )) )
+                    time.asctime(time.localtime(time.time()))))
 
 
 if __name__ == '__main__':
     bi = PadInformation()
     bi.mainloop()
-
