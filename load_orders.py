@@ -7,16 +7,16 @@ class HotOrders():
     def __init__(self):
         """ hotSOS Order tracker, saver and updater.
 
-            Function to load and save hotSOS order information into
-            memory for use throughout the CosmoDispatch application.
+        Function to load and save hotSOS order information into
+        memory for use throughout the CosmoDispatch application.
 
-            Noteable Variables
-            ------------------------------
-            conn - SQLite3 Database Connection
-            Connector to the SQLite3 database
+        Noteable Variables
+        ------------------------------
+        conn - SQLite3 Database Connection
+        Connector to the SQLite3 database
 
-            tracker - SQLite3 cursor object
-            Cursor object for SQLite3
+        tracker - SQLite3 cursor object
+        Cursor object for SQLite3
         """
         ait = AutomateIt()
         # SQL database. Saved in memory to load upon every boot up.
@@ -27,16 +27,16 @@ class HotOrders():
     def update_orders(self):
         """ Check if hotsos orders.csv is saved and will update if not.
 
-            Update orders attempts to check for the presence of the
-            orders.csv inside the csv folder location. If not located
-            will attempt to invoke the AutomateIt function export_orders().
+        Update orders attempts to check for the presence of the
+        orders.csv inside the csv folder location. If not located
+        will attempt to invoke the AutomateIt function export_orders().
 
-            Noteable Variables
-            ------------------------------
-            column_headers - string
-            Input from the orders.csv. Uses this information to gather column
-            names for each individual user. This is due to users being able
-            to alter column names inside the hotSOS application
+        Noteable Variables
+        ------------------------------
+        column_headers - string
+        Input from the orders.csv. Uses this information to gather column
+        names for each individual user. This is due to users being able
+        to alter column names inside the hotSOS application
         """
         try:
             read = open('csv/orders.csv')
@@ -92,21 +92,21 @@ class HotOrders():
     def return_order_numbers(self, column, value):
         """ Return the order numbers of value that are in columns
 
-            Return the hotSOS order numbers of all matching values
-            inside the provided column name.
+        Return the hotSOS order numbers of all matching values
+        inside the provided column name.
 
-            Noteable Variables
-            ------------------------------
-            column - String
-            Column name inside the Hotel_Orders database to compare
-            against values.
+        Noteable Variables
+        ------------------------------
+        column - String
+        Column name inside the Hotel_Orders database to compare
+        against values.
 
-            value - String
-            Value to search for in provided column name
+        value - String
+        Value to search for in provided column name
 
-            Returns
-            ------------------------------
-            Returns the hotSOS order numbers of all matching rows.
+        Returns
+        ------------------------------
+        Returns the hotSOS order numbers of all matching rows.
         """
         self.tracker.execute('''SELECT Order_Num
             FROM

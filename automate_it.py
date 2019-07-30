@@ -8,29 +8,26 @@ from time import sleep
 class UnableToLocateError(Exception):
     """ UnableToLocateError - Exception
 
-        Return unable to find on screen error.
+    Return unable to find on screen error.
     """
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return repr(self.message)
+    def __init__(self):
+        pass
 
 
 class AutomateIt():
     def __init__(self):
         """ Automation script that sends specific information to hotSOS window.
 
-            AutomateIt provides specific commands to be sent through the hotSOS
-            application. Each function has documentation to provide further
-            information to what is accomplished.
+        AutomateIt provides specific commands to be sent through the hotSOS
+        application. Each function has documentation to provide further
+        information to what is accomplished.
         """
         pyg.PAUSE = .2
 
     def move_order_number(self, wait=0):
         """ Select to Order Number box in hotsos.
 
-            Move mouse to the OrderNumber section of hotSOS and click.
+        Move mouse to the OrderNumber section of hotSOS and click.
         """
         self.window_activate()
         pyg.click(x=340, y=175)
@@ -39,23 +36,23 @@ class AutomateIt():
     def type_info(self, text, wait=0):
         """ Type info using pyautogui's type command.
 
-            Type the 'text' into the current view. Wait a certain number of seconds
-            then continue. Any commands must be entered through the 'press'
-            function. Add any commands to commands variable.
+        Type the 'text' into the current view. Wait a certain number of seconds
+        then continue. Any commands must be entered through the 'press'
+        function. Add any commands to commands variable.
 
-            Noteable Variables
-            ------------------------------
-            text - string
-            Text to send through the pyautogui library.
+        Noteable Variables
+        ------------------------------
+        text - string
+        Text to send through the pyautogui library.
 
-            wait - int
-            Time in seconds to wait after input command to allow for delay
-            after entering information.
+        wait - int
+        Time in seconds to wait after input command to allow for delay
+        after entering information.
 
-            commands - list
-            List of commands that should be entered through the press function
-            of pyautogui. If exact strings are to be typed, enter each letter
-            individually instead.
+        commands - list
+        List of commands that should be entered through the press function
+        of pyautogui. If exact strings are to be typed, enter each letter
+        individually instead.
         """
         commands = ['tab', 'enter', 'esc', 'alt']
         if text in commands:
@@ -67,36 +64,36 @@ class AutomateIt():
     def insert_new_issue(self, new_issue, issue_location, wait=1, engineer=None):
         """ Insert new issue inside hotSOS window.
 
-            Insert new issue in hotsos window. Takes information passed and
-            inputs into hotSOS utilizing precise mouse and button combinations.
+        Insert new issue in hotsos window. Takes information passed and
+        inputs into hotSOS utilizing precise mouse and button combinations.
 
-            Noteable Variables
-            ------------------------------
-            new_issue - string
-            Issue to be typed into hotSOS window. Must be exactly as shown
-            in hotSOS. Verify before sending to function.
+        Noteable Variables
+        ------------------------------
+        new_issue - string
+        Issue to be typed into hotSOS window. Must be exactly as shown
+        in hotSOS. Verify before sending to function.
 
-            issue_location - string
-            Location of issue to be typed into hotSOS window. Must be exactly
-            as shown in hotSOS. Verify before sending to function.
+        issue_location - string
+        Location of issue to be typed into hotSOS window. Must be exactly
+        as shown in hotSOS. Verify before sending to function.
 
-            wait - int
-            Time in seconds to wait after input command to allow for delay
-            after entering information.
+        wait - int
+        Time in seconds to wait after input command to allow for delay
+        after entering information.
 
-            engineer - string
-            Name of engineer to attach to hotSOS order created. If empty skip
-            entire section.
+        engineer - string
+        Name of engineer to attach to hotSOS order created. If empty skip
+        entire section.
 
 
-            Returns
-            ------------------------------
-            Success - Boolean
-            Returns successful insert or otherwise.
+        Returns
+        ------------------------------
+        Success - Boolean
+        Returns successful insert or otherwise.
 
-            message_list - List
-            List of messages to send to upper function. Useful for deciphering
-            where things have gone awry.
+        message_list - List
+        List of messages to send to upper function. Useful for deciphering
+        where things have gone awry.
         """
         self.window_activate()
         # return message_list to upper handler.
@@ -147,27 +144,27 @@ class AutomateIt():
     def find(self, item_locate, reg=None, attempt_amount=5):
         """ find(item_locate, reg=None, attempt_amount=5)
 
-            Locate screenshot on screen. If not found after certain attempts
-            raise Unable to Locate Error with error message. Region to scan,
-            set to None to search entire screen. Screen size affects photo
-            resolution. Attempt_Amount set to 5 standard, increase if region
-            not set to None.
+        Locate screenshot on screen. If not found after certain attempts
+        raise Unable to Locate Error with error message. Region to scan,
+        set to None to search entire screen. Screen size affects photo
+        resolution. Attempt_Amount set to 5 standard, increase if region
+        not set to None.
 
-            Noteable Variables
-            ------------------------------
-            item_locate - string
-            Location of screenshot to search on screen for. Warning screen
-            size affects resolution. Image must be pixel perfect. The fewer
-            the pixels the better
+        Noteable Variables
+        ------------------------------
+        item_locate - string
+        Location of screenshot to search on screen for. Warning screen
+        size affects resolution. Image must be pixel perfect. The fewer
+        the pixels the better
 
-            reg - Tuple
-            4 Integer tuple to limit the screen search size. Set to None to
-            search entire window.
+        reg - Tuple
+        4 Integer tuple to limit the screen search size. Set to None to
+        search entire window.
 
-            attempt_amount - int
-            Number of times to search screen. The higher the number the longer
-            the wait. This is used due to lag time between search and hotSOS
-            loading times.
+        attempt_amount - int
+        Number of times to search screen. The higher the number the longer
+        the wait. This is used due to lag time between search and hotSOS
+        loading times.
         """
         attempt = 0
         while attempt <= attempt_amount:
@@ -194,15 +191,15 @@ class AutomateIt():
     def export_orders(self):
         """ Exports hotSOS Orders to csv/orders.csv
 
-            Exports the current hotSOS Orders list to the orders csv value
-            inside the csv folder in the main script path. This will allow
-            other classes to load data of all current running calls.
+        Exports the current hotSOS Orders list to the orders csv value
+        inside the csv folder in the main script path. This will allow
+        other classes to load data of all current running calls.
 
-            Returns
-            ------------------------------
-            Success - Boolean
-            Returns True if successful completion or otherwise with error
-            message.
+        Returns
+        ------------------------------
+        Success - Boolean
+        Returns True if successful completion or otherwise with error
+        message.
         """
         self.window_activate()
         try:
@@ -219,24 +216,24 @@ class AutomateIt():
     def window_activate(self, window='Hotel Service Optimization System - HotSOS', wait=0):
         """ Activate window before continuing
 
-            Activate Window using autoit. Default search window is hotSOS,
-            due to frequency of use througout application.
+        Activate Window using autoit. Default search window is hotSOS,
+        due to frequency of use througout application.
 
-            Noteable Variables
-            ------------------------------
-            window - string
-            Name of window to find, using pyautoit. Pyautoit allows for
-            semi matching strings and wild cards.
+        Noteable Variables
+        ------------------------------
+        window - string
+        Name of window to find, using pyautoit. Pyautoit allows for
+        semi matching strings and wild cards.
 
-            wait - int
-            Time in seconds to wait after input command to allow for delay
-            after entering information.
+        wait - int
+        Time in seconds to wait after input command to allow for delay
+        after entering information.
 
 
-            Returns
-            ------------------------------
-            Success - Boolean
-            Return if window was either found successfully or otherwise.
+        Returns
+        ------------------------------
+        Success - Boolean
+        Return if window was either found successfully or otherwise.
         """
         print(f'Locating window: {window}')
         try:
