@@ -24,13 +24,26 @@ class AutomateIt():
         """
         pyg.PAUSE = .2
 
+    def mouse_click(self, button, x=None, y=None):
+        """ Click parametered button at x and y coordinates
+
+        Click either 'left' or 'right' mousebutton at x and y coordinates.
+        If No parametered values are provided, click at current mouse position.
+        does not return any values.
+        """
+        if x is None or y is None:
+            pyg.click(button=button)
+        else:
+            pyg.click(x=340, y=175, button=button)
+
     def move_order_number(self, wait=0):
         """ Select to Order Number box in hotsos.
 
         Move mouse to the OrderNumber section of hotSOS and click.
         """
         self.window_activate()
-        pyg.click(x=340, y=175)
+        for _ in range(2):
+            self.mouse_click('left', x=340, y=175)
         sleep(wait)
 
     def type_info(self, text, wait=0):
@@ -188,7 +201,7 @@ class AutomateIt():
         # Raise Unable to Locate back to upper function
         raise UnableToLocateError(f'{item_locate}')
 
-    def export_orders(self):
+    def export_orders(self, wait=0):
         """ Exports hotSOS Orders to csv/orders.csv
 
         Exports the current hotSOS Orders list to the orders csv value
@@ -203,14 +216,14 @@ class AutomateIt():
         """
         self.window_activate()
         try:
-            self.find('screens/orders.png')
+            self.find('screens/export.png')
         # If unable to locate return False and with error.
         except UnableToLocateError as e:
             return False, f'Unable to Locate: {e}'
         # Save prompt script
-        self.type_info(f'{os.path}/csv/orders.csv')
-        for e in ['tab', 'csv', 'enter']:
+        for e in [f'{os.path}\\csv\\orders.csv', 'tab', '.csv', 'enter']:
             self.type_info(e)
+        sleep(wait)
         return True, None
 
     def window_activate(self, window='Hotel Service Optimization System - HotSOS', wait=0):

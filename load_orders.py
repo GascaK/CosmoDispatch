@@ -1,5 +1,6 @@
 import csv
 import sqlite3
+from time import sleep
 from automate_it import AutomateIt
 
 
@@ -24,7 +25,7 @@ class HotOrders():
         self.tracker = self.conn.cursor()
         self.update_orders()
 
-    def update_orders(self):
+    def update_orders(self, wait=0):
         """ Check if hotsos orders.csv is saved and will update if not.
 
         Update orders attempts to check for the presence of the
@@ -37,6 +38,10 @@ class HotOrders():
         Input from the orders.csv. Uses this information to gather column
         names for each individual user. This is due to users being able
         to alter column names inside the hotSOS application
+
+        wait - int
+        Time in seconds to wait after input command to allow for delay
+        after entering information.
         """
         try:
             read = open('csv/orders.csv')
@@ -88,6 +93,7 @@ class HotOrders():
                 values ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}',
                 '{}', '{}', '{}')'''.format(*[value.replace("'", ',') for value in row]))
         self.conn.commit()
+        sleep(wait)
 
     def return_order_numbers(self, column, value):
         """ Return the order numbers of value that are in columns

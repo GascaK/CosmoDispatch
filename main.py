@@ -40,8 +40,9 @@ class CosmoDispatch(tk.Tk):
         file.add_command(label='Change Passwords', command=self.chg_pass)
         menu.add_cascade(label='File', menu=file)
         scripts.add_command(label="Assign PRV's", command=self.load_prvs)
-        scripts.add_command(label='Fan Coils', command=self.load_fcu)
         scripts.add_command(label='Calculate Breaks', command=self.load_breaks)
+        scripts.add_command(label='Clear Door Ajars', command=self.clear_ajar)
+        scripts.add_command(label='Fan Coils', command=self.load_fcu)
         menu.add_cascade(label='Scripts', menu=scripts)
         menu.add_command(label='Quit!', command=self.quit)
         self.config(menu=menu)
@@ -50,6 +51,7 @@ class CosmoDispatch(tk.Tk):
         frame = tk.Frame()
         frame.pack()
         self.after(30000, self.check_timeout)
+        self.after(300000, self.update_hotsos_orders)
 
         ttk.Label(frame, text='Click to Launch').grid(row=0, column=0, columnspan=2)
         hotsos_but = ttk.Button(frame, text='HotSOS', command=self.load_hotsos)
@@ -109,77 +111,113 @@ class CosmoDispatch(tk.Tk):
                                             popup.destroy()])
         enter.grid(row=4, columnspan=2)
 
-    def load_hotsos(self):
-        """ Launch and login to hotSOS.
+    def load_prvs(self):
+        """ Load the PRV's script.
 
-        Launch and login to hotsos. Load information at time of execution.
-        TODO: Create breakpoints for invalid login.
+        Prompt and assign PRV's information to Engineers. Popup window
+        to prompt user for information and assign utilizing the local
+        function attach_prvs()
         """
-        self.add_log('* Standby...\nLoading Hotsos.')
-        startfile(r'C:\Program Files (x86)\MTech\hotsos\client_na2\HotSOS.exe')
-        sleep(1)
-        self.app.window_activate(window='Login')
-        self.app.type_info(loIn.load_data('hot_user'), wait=2)
-        self.app.type_info('tab')
-        self.app.type_info(loIn.load_data('hot_pass'))
-        self.app.type_info('enter', wait=3)
-        self.app.find('screens/orders_console_hot.png')
-        self.app.type_info('tab')
-        self.app.type_info('FAC - *')
-        self.app.type_info('enter')
-        self.app.type_info('enter')
-        self.add_log('Complete!')
+        def attach_prvs(east_eng, west_eng):
+            """ Attach PRV's to tower assigned to engineer.
 
-    def load_lms(self):
-        """ Launch and login to LMS
+            Send information to insert_new_issue(). PRV locations do
+            not change thus do not need to be prompted, only engineer
+            in tower.
 
-        Launch and login to LMS. Load information at time of execution.
-        TODO: Create breakpoints for invalid login. Point of friction as
-        all LMS logins are different depending on machine.
+            Noteable Variables
+            ------------------------------
+            east_eng - string
+            Engineer in the East tower to assign PRVs.
+
+            west_eng - string
+            Engineer in the West tower to assign PRVs.
+            """
+            es_prv_rooms = ['Temp Location']
+            we_prv_rooms = ['Temp Location']
+            for east in es_prv_rooms:
+                continue_prv, mess = self.app.insert_new_issue(
+                                    'PRV - Hotel - PM',
+                                    east,
+                                    engineer=east_eng, wait=.5)
+                self.add_log([item for item in mess])
+                if continue_prv is not True:
+                    return False
+            for west in we_prv_rooms:
+                continue_prv, mess = self.app.insert_new_issue(
+                                    'PRV - Hotel - PM',
+                                    west,
+                                    engineer=west_eng,
+                                    wait=.5)
+                self.add_log([item for item in mess])
+                if continue_prv is not True:
+                    return False
+
+        popup = tk.Toplevel()
+        popup.title('PRV Selection')
+        ttk.Label(popup, text='East Tower:').grid(row=0, column=0)
+        east_eng = ttk.Combobox(popup, value=self.Engineer_List)
+        east_eng.grid(row=0, column=1)
+        east_eng.current(0)
+        ttk.Label(popup, text='West Tower:').grid(row=1, column=0)
+        west_eng = ttk.Combobox(popup, value=self.Engineer_List)
+        west_eng.grid(row=1, column=1)
+        west_eng.current(0)
+        enter = ttk.Button(popup,
+                           text='Enter',
+                           command=lambda: [attach_prvs(east_eng.get(),
+                                            west_eng.get()),
+                                            popup.destroy()])
+        enter.grid(row=2, column=0, columnspan=2)
+
+    def load_breaks(self):
+        """ Load Break time calculator to determine break length and times.
+
+        Load BreakCalculator, a function that displays names, break times,
+        and break lenths in popup window. Verifies that file is located
+        else cancels location time.
+
+        TODO
+        ------------------------------
+        Refractor BreakCalculator() to conform with new project standards.
         """
-        self.add_log('* Standby...\nLoading LMS')
-        startfile(r'C:\Users\Public\Desktop\LMS.ws')
-        sleep(2)
-        if self.app.window_activate('IBM i signon'):
-            self.app.type_info(loIn.load_data('lms_pass'))
-            sleep(1)
+        try:
+            bc = BreakCalculator()
+        # Catch FileNotFoundError. Cancel if unable to locate.
+        except FileNotFoundError:
+            self.alert('File was not Found', title='CSV BreakCalculator')
+            self.add_log('File was not found!, verfiy saved info as csv/breaks.csv')
+            return
+        bc.calculate_time()
+        bc.save_to_text()
 
-        if self.app.window_activate(window='PC5250'):
-            self.app.type_info('enter')
-            sleep(1)
-            self.app.window_activate(window='Session A -')
-            try:
-                self.app.find('screens/as400.png')
-            except UnableToLocateError as e:
-                self.add_log(f'Unable to Locate: {e}\nLMS did NOT complete. *')
-                return False
-            for each in (['enter', 'alt', 'f', 'o', 'AS400.kmp', 'enter',
-                         'alt', 'f', 'x', 'enter']):
-                self.app.type_info(each)
-            sleep(2)
-
-        if self.app.window_activate(window='Session A -'):
-            for each in (loIn.load_data('lms_user'), 'tab',
-                         loIn.load_data('lms_pass'), 'enter',
-                         '1', 'enter', 'enter'):
-                self.app.type_info(each)
-            self.add_log('Complete! *')
-            return True
+    def clear_ajar(self):
+        self.ait.export_orders(wait=6)
+        self.orders.is_updated(wait=3)
+        ajar = self.orders.return_order_numbers('Issue', 'Timelox: Door Ajar')
+        if ajar is None:
+            self.add_log('No Door Ajars to check.')
         else:
-            self.add_log('LMS did NOT complete! *')
-            return False
-
-    def check_timeout(self):
-        """ Check if timeout time limit has been reached.
-
-        Check if window Auto Logout exists and keeps hotsos logged in by
-        sending 'ENTER' to all Logout windows.
-        """
-        if self.hotsos_logout.instate(['selected']):
-            while self.app.window_activate(window='Auto Logout'):
-                self.app.type_info('enter')
-                self.add_log('**Timeout Reset**')
-        self.after(20000, self.check_timeout)
+            self.add_log(f'Ajar Orders: {ajar}')
+            for each in ajar:
+                self.ait.move_order_number()
+                self.ait.type_info(each)
+                self.ait.type_info('enter')
+                self.ait.find('screens/memo.png', reg=(200, 685, 725, 345),
+                              attempt_amount=20)
+                try:
+                    self.ait.find('screens/hot_secure_text.png',
+                                  reg=(200, 685, 725, 345),
+                                  attempt_amount=10)
+                    self.ait.find('screens/hot_door_ajar.png')
+                    self.ait.mouse_click('right')
+                    sleep(1)
+                    for comm in ['c', 'enter', 'enter', 'enter', 'enter']:
+                        self.ait.type_info(comm)
+                        sleep(.5)
+                    self.add_log(f'Door Ajar #{each} is secure.')
+                except UnableToLocateError:
+                    self.add_log(f'Door Ajar #{each} should be checked before clearing')
 
     def load_fcu(self):
         """ Load the Fan Coil Units script.
@@ -274,26 +312,90 @@ class CosmoDispatch(tk.Tk):
                                             self.add_log('FCU Complete. **')])
         enter.grid(row=4, columnspan=2)
 
-    def load_breaks(self):
-        """ Load Break time calculator to determine break length and times.
+    def check_timeout(self):
+        """ Check if timeout time limit has been reached.
 
-        Load BreakCalculator, a function that displays names, break times,
-        and break lenths in popup window. Verifies that file is located
-        else cancels location time.
-
-        TODO
-        ------------------------------
-        Refractor BreakCalculator() to conform with new project standards.
+        Check if window Auto Logout exists and keeps hotsos logged in by
+        sending 'ENTER' to all Logout windows.
         """
-        try:
-            bc = BreakCalculator()
-        # Catch FileNotFoundError. Cancel if unable to locate.
-        except FileNotFoundError:
-            self.alert('File was not Found', title='CSV BreakCalculator')
-            self.add_log('File was not found!, verfiy saved info as csv/breaks.csv')
-            return
-        bc.calculate_time()
-        bc.save_to_text()
+        if self.hotsos_logout.instate(['selected']):
+            while self.app.window_activate(window='Auto Logout'):
+                self.app.type_info('enter')
+                self.add_log('**Timeout Reset**')
+        self.after(20000, self.check_timeout)
+
+    def update_hotsos_orders(self):
+        popup = tk.Toplevel()
+        popup.title('Update?')
+
+        tk.Label(popup, text='Okay to update hotSOS?').grid(row=0, columnspan=4)
+        tk.Button(popup, text='Yes', command=lambda:[self.ait.export_orders(wait=5),
+                                              self.orders.is_updated(),
+                                              self.after(300000, self.update_hotsos_orders),
+                                              popup.destroy()]).grid(row=1, column=3)
+        tk.Button(popup, text='No',
+                  command=lambda: [self.after(300000, self.update_hotsos_orders),
+                                   popup.destroy()]).grid(row=1, column=4)
+
+    def load_hotsos(self):
+        """ Launch and login to hotSOS.
+
+        Launch and login to hotsos. Load information at time of execution.
+        TODO: Create breakpoints for invalid login.
+        """
+        self.add_log('* Standby...\nLoading Hotsos.')
+        startfile(r'C:\Program Files (x86)\MTech\hotsos\client_na2\HotSOS.exe')
+        sleep(1)
+        self.app.window_activate(window='Login')
+        self.app.type_info(loIn.load_data('hot_user'), wait=2)
+        self.app.type_info('tab')
+        self.app.type_info(loIn.load_data('hot_pass'))
+        self.app.type_info('enter', wait=3)
+        self.app.find('screens/orders_console_hot.png')
+        self.app.type_info('tab')
+        self.app.type_info('FAC - *')
+        self.app.type_info('enter')
+        self.app.type_info('enter')
+        self.add_log('Complete!')
+
+    def load_lms(self):
+        """ Launch and login to LMS
+
+        Launch and login to LMS. Load information at time of execution.
+        TODO: Create breakpoints for invalid login. Point of friction as
+        all LMS logins are different depending on machine.
+        """
+        self.add_log('* Standby...\nLoading LMS')
+        startfile(r'C:\Users\Public\Desktop\LMS.ws')
+        sleep(2)
+        if self.app.window_activate('IBM i signon'):
+            self.app.type_info(loIn.load_data('lms_pass'))
+            sleep(1)
+
+        if self.app.window_activate(window='PC5250'):
+            self.app.type_info('enter')
+            sleep(1)
+            self.app.window_activate(window='Session A -')
+            try:
+                self.app.find('screens/as400.png')
+            except UnableToLocateError as e:
+                self.add_log(f'Unable to Locate: {e}\nLMS did NOT complete. *')
+                return False
+            for each in (['enter', 'alt', 'f', 'o', 'AS400.kmp', 'enter',
+                         'alt', 'f', 'x', 'enter']):
+                self.app.type_info(each)
+            sleep(2)
+
+        if self.app.window_activate(window='Session A -'):
+            for each in (loIn.load_data('lms_user'), 'tab',
+                         loIn.load_data('lms_pass'), 'enter',
+                         '1', 'enter', 'enter'):
+                self.app.type_info(each)
+            self.add_log('Complete! *')
+            return True
+        else:
+            self.add_log('LMS did NOT complete! *')
+            return False
 
     def pad_tracker(self):
         """ Launch PAD Tracker in seperate popup window.
@@ -318,86 +420,6 @@ class CosmoDispatch(tk.Tk):
             self.add_log('File was not found! Verify "direct" files intact.')
         self.add_log('CosmoDirectory successfully loaded.')
         cd.mainloop()
-
-    def add_log(self, text):
-        """ Add input text to LOG window in Main GUI.
-
-        Adds text value to Main GUI window LOG.
-
-        Noteable Variables
-        ------------------------------
-        text - string/list
-        Attach lists and string to LOG window inside main GUI window.
-
-        info_win - TK Entry Widget object.
-        Public window information to send 'text' variable information.
-        """
-        if type(text) is list:
-            for each in text:
-                print(f'LOG: {each}')
-                self.info_win.insert(tk.END, f'$ {each}\n')
-        else:
-            print(f'LOG: {text}')
-            self.info_win.insert(tk.END, f'$ {text}\n')
-
-    def load_prvs(self):
-        """ Load the PRV's script.
-
-        Prompt and assign PRV's information to Engineers. Popup window
-        to prompt user for information and assign utilizing the local
-        function attach_prvs()
-        """
-        def attach_prvs(east_eng, west_eng):
-            """ Attach PRV's to tower assigned to engineer.
-
-            Send information to insert_new_issue(). PRV locations do
-            not change thus do not need to be prompted, only engineer
-            in tower.
-
-            Noteable Variables
-            ------------------------------
-            east_eng - string
-            Engineer in the East tower to assign PRVs.
-
-            west_eng - string
-            Engineer in the West tower to assign PRVs.
-            """
-            es_prv_rooms = ['Temp Location']
-            we_prv_rooms = ['Temp Location']
-            for east in es_prv_rooms:
-                continue_prv, mess = self.app.insert_new_issue(
-                                    'PRV - Hotel - PM',
-                                    east,
-                                    engineer=east_eng, wait=.5)
-                self.add_log([item for item in mess])
-                if continue_prv is not True:
-                    return False
-            for west in we_prv_rooms:
-                continue_prv, mess = self.app.insert_new_issue(
-                                    'PRV - Hotel - PM',
-                                    west,
-                                    engineer=west_eng,
-                                    wait=.5)
-                self.add_log([item for item in mess])
-                if continue_prv is not True:
-                    return False
-
-        popup = tk.Toplevel()
-        popup.title('PRV Selection')
-        ttk.Label(popup, text='East Tower:').grid(row=0, column=0)
-        east_eng = ttk.Combobox(popup, value=self.Engineer_List)
-        east_eng.grid(row=0, column=1)
-        east_eng.current(0)
-        ttk.Label(popup, text='West Tower:').grid(row=1, column=0)
-        west_eng = ttk.Combobox(popup, value=self.Engineer_List)
-        west_eng.grid(row=1, column=1)
-        west_eng.current(0)
-        enter = ttk.Button(popup,
-                           text='Enter',
-                           command=lambda: [attach_prvs(east_eng.get(),
-                                            west_eng.get()),
-                                            popup.destroy()])
-        enter.grid(row=2, column=0, columnspan=2)
 
     def easter_egg(self):
         # Easter Egg for the other nerdy dispatchers. Hall 9000 says hello.
@@ -436,6 +458,27 @@ class CosmoDispatch(tk.Tk):
         popup.title(title)
         ttk.Label(popup, text=text).pack()
         ttk.Button(popup, text=button, command=popup.destroy).pack()
+
+    def add_log(self, text):
+        """ Add input text to LOG window in Main GUI.
+
+        Adds text value to Main GUI window LOG.
+
+        Noteable Variables
+        ------------------------------
+        text - string/list
+        Attach lists and string to LOG window inside main GUI window.
+
+        info_win - TK Entry Widget object.
+        Public window information to send 'text' variable information.
+        """
+        if type(text) is list:
+            for each in text:
+                print(f'LOG: {each}')
+                self.info_win.insert(tk.END, f'$ {each}\n')
+        else:
+            print(f'LOG: {text}')
+            self.info_win.insert(tk.END, f'$ {text}\n')
 
 
 if __name__ == '__main__':
