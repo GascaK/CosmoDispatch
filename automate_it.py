@@ -33,8 +33,10 @@ class AutomateIt():
         """
         if x is None or y is None:
             pyg.click(button=button)
+        elif button is None:
+            pyg.click()
         else:
-            pyg.click(x=340, y=175, button=button)
+            pyg.click(x, y, button=button)
 
     def move_order_number(self, wait=0):
         """ Select to Order Number box in hotsos.
@@ -179,27 +181,30 @@ class AutomateIt():
         the wait. This is used due to lag time between search and hotSOS
         loading times.
         """
+        if not os.path.exists(item_locate):
+            raise FileNotFoundError
+
         attempt = 0
+
         while attempt <= attempt_amount:
             if reg is not None:
                 try:
                     x, y = pyg.locateCenterOnScreen(item_locate, region=reg)
-                    pyg.click(x, y)
+                    self.mouse_click('left', x=x, y=y)
                     return True
+                # Catch TypeError, add attempts and continue if valid.
                 except TypeError:
-                    print(f'TypeError {attempt}')
                     attempt += 1
             else:
                 try:
                     x, y = pyg.locateCenterOnScreen(item_locate)
-                    pyg.click(x, y)
+                    self.mouse_click('left', x=x, y=y)
                     return True
-                # Catch TypeError, but continue if not past attempt_amount
+                # Catch TypeError, add attempts and continue if valid.
                 except TypeError:
-                    print(f'TypeError {attempt}')
                     attempt += 1
         # Raise Unable to Locate back to upper function
-        raise UnableToLocateError(f'{item_locate}')
+        raise UnableToLocateError
 
     def export_orders(self, wait=0):
         """ Exports hotSOS Orders to csv/orders.csv
