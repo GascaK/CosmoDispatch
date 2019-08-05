@@ -31,10 +31,13 @@ class AutomateIt():
         If No parametered values are provided, click at current mouse position.
         does not return any values.
         """
+        x = int(x)
+        y = int(y)
+
         if x is None or y is None:
             pyg.click(button=button)
         elif button is None:
-            pyg.click()
+            pyg.moveTo(x, y)
         else:
             pyg.click(x, y, button=button)
 

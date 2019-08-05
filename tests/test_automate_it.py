@@ -26,8 +26,12 @@ class TestAutomateIt(unittest.TestCase):
             self.ait.find(self.test_screen, attempt_amount='string')
 
     def test_mouse_click_invalid_x_and_y(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             self.ait.mouse_click(None, x='X', y='Y')
+
+    def test_mouse_click_is_valid_location(self):
+        self.assertEqual(self.ait.mouse_click(None, x=0, y=0),
+                         pyg.position() is (0, 0))
 
 
 if __name__ == '__main__':

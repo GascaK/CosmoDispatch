@@ -25,7 +25,7 @@ class HotOrders():
         self.tracker = self.conn.cursor()
         self.update_orders()
 
-    def update_orders(self, wait=0):
+    def update_orders(self, filepath='csv/orders.csv', wait=0):
         """ Check if hotsos orders.csv is saved and will update if not.
 
         Update orders attempts to check for the presence of the
@@ -34,6 +34,9 @@ class HotOrders():
 
         Noteable Variables
         ------------------------------
+        filepath - string
+        Filepath to load orders from.
+
         column_headers - string
         Input from the orders.csv. Uses this information to gather column
         names for each individual user. This is due to users being able
@@ -44,13 +47,13 @@ class HotOrders():
         after entering information.
         """
         try:
-            read = open('csv/orders.csv')
+            read = open(filepath)
         # Catch File not found, and create file using ait.
         except FileNotFoundError:
             print('File was not found. Saving data now.')
             cont, mess = ait.export_orders()
             if cont:
-                read = open('csv/orders.csv')
+                read = open(filepath)
             else:
                 print(mess)
                 raise FileNotFoundError
