@@ -43,6 +43,8 @@ class CosmoDispatch(tk.Tk):
         scripts.add_command(label='Calculate Breaks', command=self.load_breaks)
         scripts.add_command(label='Clear Door Ajars', command=self.clear_ajar)
         scripts.add_command(label='Fan Coils', command=self.load_fcu)
+        scripts.add_command(label='Verify Gen Maint',
+                            command=self.verify_general_maintenance)
         menu.add_cascade(label='Scripts', menu=scripts)
         menu.add_command(label='Quit!', command=self.quit)
         self.config(menu=menu)
@@ -192,7 +194,6 @@ class CosmoDispatch(tk.Tk):
         bc.save_to_text()
 
     def clear_ajar(self):
-        self.ait.export_orders(wait=6)
         self.orders.is_updated(wait=3)
         ajar = self.orders.return_order_numbers('Issue', 'Timelox: Door Ajar')
         if ajar is None:
@@ -211,9 +212,15 @@ class CosmoDispatch(tk.Tk):
                                   attempt_amount=10)
                     self.ait.find('screens/hot_door_ajar.png')
                     self.ait.mouse_click('right')
-                    sleep(1)
-                    for comm in ['c', 'enter', 'enter', 'enter', 'enter']:
-                        self.ait.type_info(comm)
+                    sleep(3)
+                    try:
+                        self.ait.find('screens/hot_complete_order.png', attempt_amount=10)
+                    except UnableToLocateError:
+                        self.add_log('Unable to find: Order Complete!')
+                        return False
+
+                    for _ in range(3):
+                        self.ait.type_info('enter')
                         sleep(.5)
                     self.add_log(f'Door Ajar #{each} is secure.')
                 except UnableToLocateError:
@@ -312,6 +319,24 @@ class CosmoDispatch(tk.Tk):
                                             self.add_log('FCU Complete. **')])
         enter.grid(row=4, columnspan=2)
 
+    def verify_general_maintenance(self):
+        """ Check for any General Maintenance calls in database.
+
+        Check the Hotel_Orders database for any General Maintenance calls
+        inside the Trade column. Then displays for user intervention.
+
+        Noteable Variables
+        ------------------------------
+        gen_maint - list
+        List from Hotel_Orders where Trade is equal to General Maintenance.
+        """
+        self.orders.update_orders(wait=3)
+        gen_maint = self.orders.return_order_numbers('Trade', 'FAC - General Maintenance')
+        if gen_maint is None:
+            self.add_log('No General Maintenance calls to check')
+        else:
+            self.add_log(f'Check these calls for possible issues: \n{gen_maint}')
+
     def check_timeout(self):
         """ Check if timeout time limit has been reached.
 
@@ -325,17 +350,38 @@ class CosmoDispatch(tk.Tk):
         self.after(20000, self.check_timeout)
 
     def update_hotsos_orders(self):
+        """ Check if user wants to run a check of hotSOS orders.
+
+        Prompt the user to continue with updating the Hotel_Orders
+        database. If yes, run audit. Else, reque prompt and continue
+        on.
+        """
+        def audit_hotsos_order():
+            """ Perform a Hotel_Orders audit for possible unanswered calls
+
+            Check Hotel_Orders database for any running calls that may
+            need to be checked for possible issues.
+            """
+            self.add_log('Perfoming hotSOS audit.')
+            self.ait.export_orders(wait=5)
+            self.orders.update_orders()
+            self.clear_ajar()
+            self.verify_general_maintenance()
+
         popup = tk.Toplevel()
         popup.title('Update?')
 
-        tk.Label(popup, text='Okay to update hotSOS?').grid(row=0, columnspan=4)
-        tk.Button(popup, text='Yes', command=lambda:[self.ait.export_orders(wait=5),
-                                              self.orders.is_updated(),
-                                              self.after(300000, self.update_hotsos_orders),
-                                              popup.destroy()]).grid(row=1, column=3)
-        tk.Button(popup, text='No',
-                  command=lambda: [self.after(300000, self.update_hotsos_orders),
-                                   popup.destroy()]).grid(row=1, column=4)
+        tk.Label(popup, text='Okay to audit hotSOS?').grid(row=0, columnspan=4)
+        tk.Button(popup,
+                  text='Yes',
+                  command=lambda: [self.audit_hotsos_order(),
+                                   self.after(600000, self.update_hotsos_orders),
+                                   popup.destroy()]).grid(row=1, column=3)
+        tk.Button(popup,
+                  text='No',
+                  command=lambda: [self.after(600000, self.update_hotsos_orders),
+                                   popup.destroy(),
+                                   self.add_log('Update Hotsos Canceled.')]).grid(row=1, column=4)
 
     def load_hotsos(self):
         """ Launch and login to hotSOS.
@@ -362,8 +408,6 @@ class CosmoDispatch(tk.Tk):
         """ Launch and login to LMS
 
         Launch and login to LMS. Load information at time of execution.
-        TODO: Create breakpoints for invalid login. Point of friction as
-        all LMS logins are different depending on machine.
         """
         self.add_log('* Standby...\nLoading LMS')
         startfile(r'C:\Users\Public\Desktop\LMS.ws')
