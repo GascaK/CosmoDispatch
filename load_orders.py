@@ -19,11 +19,10 @@ class HotOrders():
         tracker - SQLite3 cursor object
         Cursor object for SQLite3
         """
-        ait = AutomateIt()
+        self.ait = AutomateIt()
         # SQL database. Saved in memory to load upon every boot up.
         self.conn = sqlite3.connect(':memory:')
         self.tracker = self.conn.cursor()
-        self.update_orders()
 
     def update_orders(self, filepath='csv/orders.csv', wait=0):
         """ Check if hotsos orders.csv is saved and will update if not.
@@ -51,7 +50,7 @@ class HotOrders():
         # Catch File not found, and create file using ait.
         except FileNotFoundError:
             print('File was not found. Saving data now.')
-            cont, mess = ait.export_orders()
+            cont, mess = self.ait.export_orders()
             if cont:
                 read = open(filepath)
             else:
@@ -118,6 +117,34 @@ class HotOrders():
         Returns the hotSOS order numbers of all matching rows.
         """
         self.tracker.execute('''SELECT Order_Num
+            FROM
+             Hotel_Orders
+            WHERE
+             {} = ?
+            ORDER BY
+             Order_Num'''.format(column), (value,))
+        return self.tracker.fetchall()
+
+    def return_all_orders(self, column, value):
+        """ Return all values from the db where value is in column
+
+        Return the hotSOS information of all matching values inside
+        the provided column name
+
+        Noteable Variables
+        ------------------------------
+        column - String
+        Column name inside the Hotel_Orders database to compare
+        against values.
+
+        value - String
+        Value to search for in provided column name
+
+        Returns
+        ------------------------------
+        Returns the hotSOS information of all matching rows.
+        """
+        self.tracker.execute('''SELECT *
             FROM
              Hotel_Orders
             WHERE

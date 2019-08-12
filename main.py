@@ -4,9 +4,11 @@ from tkinter import ttk
 from time import sleep
 from os import startfile
 from PAD import PadInformation
+from load_orders import HotOrders
 from directory import CosmoDirectory
+from break_calculator import BreakCalculator
 from automate_it import AutomateIt, UnableToLocateError
-from breakCalculator import BreakCalculator
+
 
 
 class CosmoDispatch(tk.Tk):
@@ -27,6 +29,7 @@ class CosmoDispatch(tk.Tk):
         Information box widget where data is output too.
         """
         self.app = AutomateIt()
+        self.orders = HotOrders()
         self.Engineer_List = ['John Doe', 'Jane Doe']
 
         tk.Tk.__init__(self)
