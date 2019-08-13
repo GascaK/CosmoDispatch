@@ -51,6 +51,18 @@ class AutomateIt():
             self.mouse_click('left', x=340, y=175)
         sleep(wait)
 
+    def reset_hotsos_window(self, wait=0):
+        """ Reset hotSOS back to original window screen
+
+        Reset hotSOS back to how it was before finding Hotel_Orders
+        Order_Num.
+        """
+        self.window_activate()
+        self.move_order_number()
+        self.type_info('backspace')
+        self.type_info('esc')
+        self.type_info('enter')
+
     def type_info(self, text, wait=0):
         """ Type info using pyautogui's type command.
 
@@ -72,7 +84,8 @@ class AutomateIt():
         of pyautogui. If exact strings are to be typed, enter each letter
         individually instead.
         """
-        commands = ['tab', 'enter', 'esc', 'alt']
+        commands = ['tab', 'enter', 'esc', 'alt', 'command', 'option', 
+                    'select', 'backspace']
         if text in commands:
             pyg.press(text)
         else:
@@ -106,10 +119,10 @@ class AutomateIt():
 
         Returns
         ------------------------------
-        Success - Boolean
+        Success - boolean
         Returns successful insert or otherwise.
 
-        message_list - List
+        message_list - list
         List of messages to send to upper function. Useful for deciphering
         where things have gone awry.
         """
@@ -175,7 +188,7 @@ class AutomateIt():
         size affects resolution. Image must be pixel perfect. The fewer
         the pixels the better
 
-        reg - Tuple
+        reg - tuple
         4 Integer tuple to limit the screen search size. Set to None to
         search entire window.
 

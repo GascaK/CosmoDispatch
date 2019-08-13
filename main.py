@@ -10,7 +10,6 @@ from break_calculator import BreakCalculator
 from automate_it import AutomateIt, UnableToLocateError
 
 
-
 class CosmoDispatch(tk.Tk):
     def __init__(self):
         """ Cosmo Dispatch main entry point.
@@ -39,18 +38,25 @@ class CosmoDispatch(tk.Tk):
         # Create Menu section.
         menu = tk.Menu(self)
         scripts = tk.Menu(menu, tearoff=0)
+        hotsos = tk.Menu(menu, tearoff=0)
         file = tk.Menu(menu, tearoff=0)
         file.add_command(label='Change Passwords', command=self.chg_pass)
         menu.add_cascade(label='File', menu=file)
+
+        hotsos.add_command(label='Run hotSOS Audit',
+                           command=self.audit_hotsos_order)
+        hotsos.add_command(label='Clear Door Ajars', command=self.clear_ajar)
+        hotsos.add_command(label='Verify Gen Maint',
+                           command=self.verify_general_maintenance)
+        menu.add_cascade(label='hotSOS', menu=hotsos)
+
         scripts.add_command(label="Assign PRV's", command=self.load_prvs)
         scripts.add_command(label='Calculate Breaks', command=self.load_breaks)
-        scripts.add_command(label='Clear Door Ajars', command=self.clear_ajar)
         scripts.add_command(label='Fan Coils', command=self.load_fcu)
-        scripts.add_command(label='Verify Gen Maint',
-                            command=self.verify_general_maintenance)
         menu.add_cascade(label='Scripts', menu=scripts)
         menu.add_command(label='Quit!', command=self.quit)
         self.config(menu=menu)
+        # ------------------------------
 
         # Create Main UI window widgets.
         frame = tk.Frame()
@@ -65,14 +71,19 @@ class CosmoDispatch(tk.Tk):
         lms_but = ttk.Button(frame, text='LMS', command=self.load_lms)
         lms_but.grid(row=1, column=1)
 
-        pad_track = ttk.Button(frame, text='PAD Tracker', command=self.pad_tracker)
+        pad_track = ttk.Button(frame,
+                               text='PAD Tracker',
+                               command=self.pad_tracker)
         pad_track.grid(row=2, column=0)
 
-        cosmo_direct = ttk.Button(frame, text='Directory', command=self.cosmo_directory)
+        cosmo_direct = ttk.Button(frame,
+                                  text='Directory',
+                                  command=self.cosmo_directory)
         cosmo_direct.grid(row=2, column=1)
 
         self.hotsos_logout = ttk.Checkbutton(frame, text='Prevent Logoff')
         self.hotsos_logout.grid(row=3, columnspan=2)
+        # ------------------------------
 
         # LOG window widget.
         self.info_win = tk.Text(frame, width=40, height=10)
@@ -197,8 +208,20 @@ class CosmoDispatch(tk.Tk):
         bc.save_to_text()
 
     def clear_ajar(self):
+        """ Clear all open Door Ajar calls from hotSOS.
+
+        Takes all Order_Nums where 'Issue' is 'Timelox: Door Ajar' and closes
+        them inside the main hotSOS window.
+
+        Noteable Variables
+        ------------------------------
+        ajar - list
+        List of Order_Nums from Hotel_Orders db where 'Issue' is equal to
+        'Timelox: Door Ajar'
+        """
+        self.add_log('Verifying Door Ajars are secure.')
         self.orders.is_updated(wait=3)
-        ajar = self.orders.return_order_numbers('Issue', 'Timelox: Door Ajar')
+        ajar = self.orders.order_numbers_as_list('Issue', 'Timelox: Door Ajar')
         if ajar is None:
             self.add_log('No Door Ajars to check.')
         else:
@@ -207,8 +230,10 @@ class CosmoDispatch(tk.Tk):
                 self.ait.move_order_number()
                 self.ait.type_info(each)
                 self.ait.type_info('enter')
+                sleep(1.5)
                 self.ait.find('screens/memo.png', reg=(200, 685, 725, 345),
                               attempt_amount=20)
+
                 try:
                     self.ait.find('screens/hot_secure_text.png',
                                   reg=(200, 685, 725, 345),
@@ -216,18 +241,23 @@ class CosmoDispatch(tk.Tk):
                     self.ait.find('screens/hot_door_ajar.png')
                     self.ait.mouse_click('right')
                     sleep(3)
-                    try:
-                        self.ait.find('screens/hot_complete_order.png', attempt_amount=10)
-                    except UnableToLocateError:
-                        self.add_log('Unable to find: Order Complete!')
-                        return False
+                    self.ait.type_info('c')
+                    self.ait.type_info('enter')
+                    self.ait.find('screens/hot_complete_order.png',
+                                  attempt_amount=10)
 
                     for _ in range(3):
                         self.ait.type_info('enter')
                         sleep(.5)
                     self.add_log(f'Door Ajar #{each} is secure.')
+                    sleep(3)
+                # If UnableToLocate is raised display to user to check room
+                # then continue to next ajar, as this is expected behavior.
                 except UnableToLocateError:
                     self.add_log(f'Door Ajar #{each} should be checked before clearing')
+
+        # Reset window before quit.
+        self.ait.reset_hotsos_window()
 
     def load_fcu(self):
         """ Load the Fan Coil Units script.
@@ -334,7 +364,8 @@ class CosmoDispatch(tk.Tk):
         List from Hotel_Orders where Trade is equal to General Maintenance.
         """
         self.orders.update_orders(wait=3)
-        gen_maint = self.orders.return_order_numbers('Trade', 'FAC - General Maintenance')
+        gen_maint = self.orders.order_numbers_as_list('Trade',
+                                                      'FAC - General Maintenance Shop')
         if gen_maint is None:
             self.add_log('No General Maintenance calls to check')
         else:
@@ -359,52 +390,52 @@ class CosmoDispatch(tk.Tk):
         database. If yes, run audit. Else, reque prompt and continue
         on.
         """
-        def audit_hotsos_order():
-            """ Perform a Hotel_Orders audit for possible unanswered calls
-
-            Check Hotel_Orders database for any running calls that may
-            need to be checked for possible issues.
-            """
-            self.add_log('Perfoming hotSOS audit.')
-            self.ait.export_orders(wait=5)
-            self.orders.update_orders()
-            self.clear_ajar()
-            self.verify_general_maintenance()
-
         popup = tk.Toplevel()
         popup.title('Update?')
 
         tk.Label(popup, text='Okay to audit hotSOS?').grid(row=0, columnspan=4)
-        tk.Button(popup,
-                  text='Yes',
-                  command=lambda: [self.audit_hotsos_order(),
-                                   self.after(600000, self.update_hotsos_orders),
-                                   popup.destroy()]).grid(row=1, column=3)
-        tk.Button(popup,
-                  text='No',
-                  command=lambda: [self.after(600000, self.update_hotsos_orders),
+        tk.Button(popup, text='Yes', command=lambda: [self.audit_hotsos_order(),
+                                                     self.after(1200000, self.update_hotsos_orders),
+                                                     popup.destroy()]).grid(row=1, column=3)
+        tk.Button(popup, text='No',
+                  command=lambda: [self.after(1200000, self.update_hotsos_orders),
                                    popup.destroy(),
                                    self.add_log('Update Hotsos Canceled.')]).grid(row=1, column=4)
+
+    def audit_hotsos_order(self):
+        """ Audit hotsos orders
+
+        Audit currently running hotsos orders in Hotel_Orders DB.
+        """
+        self.add_log('Performing hotSOS audit.')
+        self.ait.export_orders(wait=5)
+        self.orders.is_updated()
+        self.clear_ajar()
+        self.verify_general_maintenance()
+        self.add_log('hotSOS Audit complete!')
 
     def load_hotsos(self):
         """ Launch and login to hotSOS.
 
         Launch and login to hotsos. Load information at time of execution.
-        TODO: Create breakpoints for invalid login.
         """
         self.add_log('* Standby...\nLoading Hotsos.')
         startfile(r'C:\Program Files (x86)\MTech\hotsos\client_na2\HotSOS.exe')
         sleep(1)
-        self.app.window_activate(window='Login')
-        self.app.type_info(loIn.load_data('hot_user'), wait=2)
-        self.app.type_info('tab')
-        self.app.type_info(loIn.load_data('hot_pass'))
-        self.app.type_info('enter', wait=3)
-        self.app.find('screens/orders_console_hot.png')
-        self.app.type_info('tab')
-        self.app.type_info('FAC - *')
-        self.app.type_info('enter')
-        self.app.type_info('enter')
+        self.ait.window_activate(window='Login')
+        self.ait.type_info(loIn.load_data('hot_user'), wait=2)
+        self.ait.type_info('tab')
+        self.ait.type_info(loIn.load_data('hot_pass'))
+        self.ait.type_info('enter', wait=3)
+        try:
+            self.ait.find('screens/orders_console_hot.png')
+        except UnableToLocateError:
+            self.add_log(f'Unable to Locate: {e}\nLMS did NOT complete. *')
+            return
+        self.ait.type_info('tab')
+        self.ait.type_info('FAC - *')
+        self.ait.type_info('enter')
+        self.ait.type_info('enter')
         self.add_log('Complete!')
 
     def load_lms(self):

@@ -22,6 +22,7 @@ class HotOrders():
         self.ait = AutomateIt()
         # SQL database. Saved in memory to load upon every boot up.
         self.conn = sqlite3.connect(':memory:')
+        self.conn.row_factory = sqlite3.Row
         self.tracker = self.conn.cursor()
 
     def update_orders(self, filepath='csv/orders.csv', wait=0):
@@ -97,7 +98,7 @@ class HotOrders():
         self.conn.commit()
         sleep(wait)
 
-    def return_order_numbers(self, column, value):
+    def order_numbers_as_list(self, column, value):
         """ Return the order numbers of value that are in columns
 
         Return the hotSOS order numbers of all matching values
@@ -123,9 +124,11 @@ class HotOrders():
              {} = ?
             ORDER BY
              Order_Num'''.format(column), (value,))
-        return self.tracker.fetchall()
+        # return self.tracker.fetchall()
+        results = [list(row) for row in self.tracker.fetchall()]
+        return results
 
-    def return_all_orders(self, column, value):
+    def all_orders_as_dict(self, column, value):
         """ Return all values from the db where value is in column
 
         Return the hotSOS information of all matching values inside
@@ -151,7 +154,7 @@ class HotOrders():
              {} = ?
             ORDER BY
              Order_Num'''.format(column), (value,))
-        return self.tracker.fetchall()
+        return [dict(row) for row in self.tracker.fetchall()]
 
 
 if __name__ == '__main__':
