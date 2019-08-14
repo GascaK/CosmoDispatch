@@ -51,7 +51,7 @@ class CosmoDispatch(tk.Tk):
         menu.add_cascade(label='hotSOS', menu=hotsos)
 
         scripts.add_command(label="Assign PRV's", command=self.load_prvs)
-        scripts.add_command(label='Calculate Breaks', command=self.load_breaks)
+        scripts.add_command(label='Calculate Breaks', command=self.calculate_breaks)
         scripts.add_command(label='Fan Coils', command=self.load_fcu)
         menu.add_cascade(label='Scripts', menu=scripts)
         menu.add_command(label='Quit!', command=self.quit)
@@ -186,26 +186,25 @@ class CosmoDispatch(tk.Tk):
                                             popup.destroy()])
         enter.grid(row=2, column=0, columnspan=2)
 
-    def load_breaks(self):
+    def calculate_breaks(self):
         """ Load Break time calculator to determine break length and times.
 
         Load BreakCalculator, a function that displays names, break times,
-        and break lenths in popup window. Verifies that file is located
-        else cancels location time.
-
-        TODO
-        ------------------------------
-        Refractor BreakCalculator() to conform with new project standards.
+        and break lenths in seperate breaks.txt file for easy copy paste.
         """
+        self.orders.update_orders()
+
+        shops = ['Casino', 'Hotel', 'Mechanical', 'Kitchen']
+        reg_breaks = [f'Break - {each} Shop' for each in shops]
+        lunch_breaks = [f'Lunch Break - {each} Shop' for each in shops]
         try:
-            bc = BreakCalculator()
+            bc = BreakCalculator([self.orders.all_orders_as_dict('Issue', ret_breaks),
+                                  self.orders.all_orders_as_dict('Issue', lunch_breaks)])
         # Catch FileNotFoundError. Cancel if unable to locate.
         except FileNotFoundError:
             self.alert('File was not Found', title='CSV BreakCalculator')
             self.add_log('File was not found!, verfiy saved info as csv/breaks.csv')
             return
-        bc.calculate_time()
-        bc.save_to_text()
 
     def clear_ajar(self):
         """ Clear all open Door Ajar calls from hotSOS.

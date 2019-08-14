@@ -89,7 +89,7 @@ class AutomateIt():
         if text in commands:
             pyg.press(text)
         else:
-            pyg.typewrite(text)
+            pyg.typewrite(str(text))
         sleep(wait)
 
     def insert_new_issue(self, new_issue, issue_location, wait=1, engineer=None):
